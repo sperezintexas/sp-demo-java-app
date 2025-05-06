@@ -67,13 +67,6 @@ This is a simple Spring Boot application that demonstrates the use of Spring Boo
    ./gradlew bootRun
    ```
 
-4. to run using docker compose the app
-   ```
-   docker compose up -d
-   
-   to stop
-   docker compose down
-   ```
 
 ### Running Tests
 

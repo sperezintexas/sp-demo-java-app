@@ -24,7 +24,7 @@ repositories {
 val logVersion = "2.0.17"
 val logbackVersion = "1.5.18"
 val mockitoVersion = "5.15.2"
-
+val springBootVersion = "3.2.6"
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
 	implementation("org.springframework.boot:spring-boot-starter-web")
@@ -41,6 +41,8 @@ dependencies {
 	testImplementation("org.mockito:mockito-junit-jupiter:$mockitoVersion")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+	developmentOnly("org.springframework.boot:spring-boot-docker-compose:$springBootVersion")
 }
 
 kotlin {
