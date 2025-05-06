@@ -1,9 +1,8 @@
--- schema.sql
 CREATE TABLE IF NOT EXISTS messages
 (
     id   VARCHAR(60) DEFAULT gen_random_uuid()::VARCHAR(60) PRIMARY KEY,
     text VARCHAR NOT NULL
-);
+    );
 
 CREATE TABLE IF NOT EXISTS todos
 (
@@ -12,4 +11,4 @@ CREATE TABLE IF NOT EXISTS todos
     description TEXT,
     completed   BOOLEAN   DEFAULT FALSE,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+    );

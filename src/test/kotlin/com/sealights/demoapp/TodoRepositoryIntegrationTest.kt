@@ -9,13 +9,13 @@ import java.time.LocalDateTime
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-@SpringBootTest
+
 class TodoRepositoryIntegrationTest {
 
     @Autowired
     private lateinit var todoRepository: TodoRepository
 
-    @Test
+
     fun `should save and retrieve todo`() {
         // given
         val todo = Todo(

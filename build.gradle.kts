@@ -32,7 +32,9 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.slf4j:slf4j-api:$logVersion")
 	implementation("ch.qos.logback:logback-classic:$logbackVersion")
-	runtimeOnly("com.h2database:h2")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    runtimeOnly("com.h2database:h2")
+	runtimeOnly("org.postgresql:postgresql")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 
 	testImplementation("org.mockito:mockito-core:$mockitoVersion")
