@@ -2,13 +2,32 @@ name: demo-app-CI
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-    branches: [master]
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    # Set up PostgreSQL service container
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: sealights
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK
@@ -20,6 +39,10 @@ jobs:
         run: chmod +x gradlew
       - name: Build with Gradle
         run: ./gradlew bootBuildImage
+        env:
+          # Pass PostgreSQL service container connection details to the build
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/sealights
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: postgres
       - name: Build Docker image
         run: docker build -t sp-demo-java-app .
-
