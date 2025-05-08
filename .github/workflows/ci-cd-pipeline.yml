@@ -21,7 +21,7 @@ jobs:
           echo "SeaLights Java Agent version used is:"
           cat sealights/sealights-java-version.txt
 
-      # Generate SeaLights Session ID
+      # Generate SeaLights Session ID with -config
       - name: Generate SeaLights Session ID
         env:
           SL_TOKEN: ${{ secrets.SL_TOKEN }}
@@ -29,18 +29,19 @@ jobs:
           SL_BUILDNAME: "build-${{ github.run_id }}"
           SL_BRANCHNAME: "${{ github.ref_name }}"
         run: |
-          # Run the createBuildSession command and capture output
-          echo "Running createBuildSession command..."
-          java -jar sealights/sl-build-scanner.jar -createBuildSession \
+          # Run the -config command and capture output
+          echo "Running -config command to generate session ID..."
+          java -jar sealights/sl-build-scanner.jar -config \
             -appName "$SL_APPNAME" \
             -buildName "$SL_BUILDNAME" \
             -branchName "$SL_BRANCHNAME" \
-            -token "$SL_TOKEN" > session_id.txt 2>&1 || {
-              echo "Error: createBuildSession command failed. Output:"
+            -token "$SL_TOKEN" \
+            -pi "com.sealights.demoapp.*" > session_id.txt 2>&1 || {
+              echo "Error: -config command failed. Output:"
               cat session_id.txt
               exit 1
             }
-          echo "Output from createBuildSession:"
+          echo "Output from -config command:"
           cat session_id.txt
 
       # Upload Session ID as an artifact
@@ -83,31 +84,4 @@ jobs:
       - name: Download SeaLights Java Agent
         run: |
           wget -nv https://agents.sealights.co/sealights-java/sealights-java-latest.zip
-          unzip -oq sealights-java-latest.zip -d sealights
-          echo "SeaLights Java Agent version used is:"
-          cat sealights/sealights-java-version.txt
-
-      # Download Session ID artifact
-      - name: Download Session ID
-        uses: actions/download-artifact@v4
-        with:
-          name: session-id
-
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Run tests
-        run: ./gradlew test
+          unzip -oq seal
