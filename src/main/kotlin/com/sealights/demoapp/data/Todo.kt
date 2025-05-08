@@ -11,5 +11,5 @@ data class Todo(
     val title: String,
     val description: String,
     val completed: Boolean = false,
-    val createdAt: java.time.LocalDateTime = java.time.LocalDateTime.now()
+    val createdAt: java.time.LocalDateTime = LocalDateTime.now()
 )

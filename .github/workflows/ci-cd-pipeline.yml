@@ -10,27 +10,15 @@ jobs:
   # Build stage
   build:
     runs-on: ubuntu-latest
-
-    # Set up PostgreSQL service container
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_DB: sealights
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        ports:
-          # Maps tcp port 5432 on service container to the host
-          - 5432:5432
-        # Set health checks to wait until postgres has started
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - uses: actions/checkout@v4
+        # Download SeaLights Java Agent
+      - name: Download SeaLights Java Agent
+        run: |
+          wget -nv https://agents.sealights.co/sealights-java/sealights-java-latest.zip
+          unzip -oq sealights-java-latest.zip -d sealights
+          echo "SeaLights Java Agent version used is:"
+          cat sealights/version.txt
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
@@ -46,11 +34,6 @@ jobs:
         run: chmod +x gradlew
       - name: Build with Gradle
         run: ./gradlew bootBuildImage
-        env:
-          # Pass PostgreSQL service container connection details to the build
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/sealights
-          SPRING_DATASOURCE_USERNAME: postgres
-          SPRING_DATASOURCE_PASSWORD: postgres
       - name: Build Docker image
         run: docker build -t sp-demo-java-app .
 
@@ -58,24 +41,6 @@ jobs:
   test:
     needs: build
     runs-on: ubuntu-latest
-
-    # Set up PostgreSQL service container
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_DB: sealights
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        ports:
-          # Maps tcp port 5432 on service container to the host
-          - 5432:5432
-        # Set health checks to wait until postgres has started
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
       - uses: actions/checkout@v4
@@ -94,8 +59,3 @@ jobs:
         run: chmod +x gradlew
       - name: Run tests
         run: ./gradlew test
-        env:
-          # Pass PostgreSQL service container connection details to the tests
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/sealights
-          SPRING_DATASOURCE_USERNAME: postgres
-          SPRING_DATASOURCE_PASSWORD: postgres

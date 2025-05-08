@@ -1,11 +1,10 @@
 # Spring Boot Demo Application
 
-This is a simple Spring Boot application that demonstrates the use of Spring Boot, Spring Data JDBC, and PostgreSQL.
+This is a simple Spring Boot application that demonstrates the use of Spring Boot, Spring Data JDBC.
 
 ## Features
 
 - RESTful API for managing todos and messages
-- PostgreSQL database for data persistence
 - Docker support for easy deployment
 
 ## Prerequisites
@@ -35,6 +34,61 @@ This is a simple Spring Boot application that demonstrates the use of Spring Boo
    docker compose down
    ```
 
+### Building the Docker Image
+
+When building the Docker image, you can pass build arguments to set default values for the Sealights environment variables:
+
+```bash
+docker build -t sp-demo-java-app \
+  --build-arg SL_TOKEN="your_token" \
+  --build-arg SL_APPNAME="your_app_name" \
+  --build-arg SL_BUILDNAME="your_build_name" \
+  --build-arg SL_LABID="your_lab_id" \
+  --build-arg SL_INCLUDES="your_includes_pattern" \
+  .
+```
+
+These build arguments will be used as default values for the environment variables in the Docker image. However, they can be overridden at runtime using the `-e` flag with `docker run`.
+
+### Running with Docker Run
+
+If you want to run the application using `docker run` instead of Docker Compose, you need to ensure that the Sealights environment variables are properly passed to the container. The application uses the following environment variables:
+
+- `SL_TOKEN` - Sealights token
+- `SL_APPNAME` - Sealights application name
+- `SL_BUILDNAME` - Sealights build name
+- `SL_LABID` - Sealights lab ID
+- `SL_INCLUDES` - Sealights includes pattern
+
+These variables are defined in the `.env` file and are automatically loaded by Docker Compose. However, when using `docker run`, you need to pass them explicitly.
+
+For convenience, we've provided scripts that load these variables from the `.env` file and pass them to the Docker container:
+
+#### Windows (PowerShell)
+
+```powershell
+.\run-docker.ps1
+```
+
+#### Linux/macOS (Bash)
+
+```bash
+chmod +x run-docker.sh
+./run-docker.sh
+```
+
+Alternatively, you can pass the environment variables manually:
+
+```bash
+docker run -p 8080:8080 \
+  -e SL_TOKEN="your_token" \
+  -e SL_APPNAME="your_app_name" \
+  -e SL_BUILDNAME="your_build_name" \
+  -e SL_LABID="your_lab_id" \
+  -e SL_INCLUDES="your_includes_pattern" \
+  sp-demo-java-app
+```
+
 ## API Endpoints
 
 ### Todos
@@ -55,14 +109,7 @@ This is a simple Spring Boot application that demonstrates the use of Spring Boo
 
 ### Running Locally
 
-1. Make sure Docker Desktop is running on your system. If it's not running, start it before proceeding.
-
-2. Start a PostgreSQL instance:
-   ```
-   docker compose up -d postgres
-   ```
-
-3. Run the application:
+### Run the application:
    ```
    ./gradlew bootRun
    ```

@@ -1,1 +1,1 @@
-rootProject.name = "sp-demo-java-app"
+rootProject.name ="sp-demo-java-app"
