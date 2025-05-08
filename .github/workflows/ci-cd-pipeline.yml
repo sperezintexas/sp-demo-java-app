@@ -29,22 +29,19 @@ jobs:
           SL_BUILDNAME: "build-${{ github.run_id }}"
           SL_BRANCHNAME: "${{ github.ref_name }}"
         run: |
+          # Run the createBuildSession command and capture output
+          echo "Running createBuildSession command..."
           java -jar sealights/sl-build-scanner.jar -createBuildSession \
             -appName "$SL_APPNAME" \
             -buildName "$SL_BUILDNAME" \
             -branchName "$SL_BRANCHNAME" \
-            -token "$SL_TOKEN" > session_id_raw.txt
-          # Extract the session ID (UUID pattern) and save to session_id.txt
-          grep -E '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' session_id_raw.txt > session_id.txt
-          # Verify the session ID was extracted
-          if [ -s session_id.txt ]; then
-            echo "Session ID extracted successfully:"
-            cat session_id.txt
-            echo "SESSION_ID=$(cat session_id.txt)" >> $GITHUB_ENV
-          else
-            echo "Error: Failed to extract session ID from output."
-            exit 1
-          fi
+            -token "$SL_TOKEN" > session_id.txt 2>&1 || {
+              echo "Error: createBuildSession command failed. Output:"
+              cat session_id.txt
+              exit 1
+            }
+          echo "Output from createBuildSession:"
+          cat session_id.txt
 
       # Upload Session ID as an artifact
       - name: Upload Session ID
