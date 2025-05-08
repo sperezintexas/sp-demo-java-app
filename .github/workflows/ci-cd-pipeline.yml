@@ -1,4 +1,4 @@
-name: sealights-demo-java-app-ci
+name: demo-app-CI
 
 on:
   push:
@@ -6,10 +6,10 @@ on:
   pull_request:
     branches: [main]
 
-  jobs:
+jobs:
   # Build stage
-    build:
-      runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -19,14 +19,7 @@ on:
           wget -nv https://agents.sealights.co/sealights-java/sealights-java-latest.zip
           unzip -oq sealights-java-latest.zip -d sealights
           echo "SeaLights Java Agent version used is:"
-          cat sealights/version.txt
-
-      # Upload SeaLights Agent as an artifact
-      - name: Upload SeaLights Agent
-        uses: actions/upload-artifact@v4
-        with:
-          name: sealights-agent
-          path: sealights/
+          cat sealights/sealights-java-version.txt
 
       # Generate SeaLights Session ID
       - name: Generate SeaLights Session ID
@@ -80,12 +73,13 @@ on:
     steps:
       - uses: actions/checkout@v4
 
-      # Download SeaLights Agent artifact
-      - name: Download SeaLights Agent
-        uses: actions/download-artifact@v4
-        with:
-          name: sealights-agent
-          path: sealights/
+      # Download SeaLights Java Agent (keeping as in your working version)
+      - name: Download SeaLights Java Agent
+        run: |
+          wget -nv https://agents.sealights.co/sealights-java/sealights-java-latest.zip
+          unzip -oq sealights-java-latest.zip -d sealights
+          echo "SeaLights Java Agent version used is:"
+          cat sealights/sealights-java-version.txt
 
       # Download Session ID artifact
       - name: Download Session ID
@@ -109,58 +103,5 @@ on:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run tests
-        run: ./gradlew test
-jobs:
-  # Build stage
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        # Download SeaLights Java Agent
-      - name: Download SeaLights Java Agent
-        run: |
-          wget -nv https://agents.sealights.co/sealights-java/sealights-java-latest.zip
-          unzip -oq sealights-java-latest.zip -d sealights
-          echo "SeaLights Java Agent version used is:"
-          cat sealights/sealights-java-version.txt
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-      - name: Build with Gradle
-        run: ./gradlew bootBuildImage
-      - name: Build Docker image
-        run: docker build -t sp-demo-java-app .
-
-  # Test stage
-  test:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
       - name: Run tests
         run: ./gradlew test
