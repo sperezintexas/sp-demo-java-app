@@ -32,24 +32,20 @@ jobs:
           # Run the -config command and capture output
           echo "Running -config command to generate session ID..."
           java -jar sealights/sl-build-scanner.jar -config \
-            -appName "$SL_APPNAME" \
-            -buildName "$SL_BUILDNAME" \
-            -branchName "$SL_BRANCHNAME" \
+            -appname "$SL_APPNAME" \
+            -buildname "$SL_BUILDNAME" \
+            -branchname "$SL_BRANCHNAME" \
             -token "$SL_TOKEN" \
-            -pi "com.sealights.demoapp.*" > session_id.txt 2>&1 || {
-              echo "Error: -config command failed. Output:"
-              cat session_id.txt
-              exit 1
-            }
+            -pi "com.sealights.demoapp.*"
           echo "Output from -config command:"
-          cat session_id.txt
+          cat buildSessionId.txt
 
       # Upload Session ID as an artifact
       - name: Upload Session ID
         uses: actions/upload-artifact@v4
         with:
           name: session-id
-          path: session_id.txt
+          path: buildSessionId.txt
 
       - name: Set up JDK
         uses: actions/setup-java@v4
