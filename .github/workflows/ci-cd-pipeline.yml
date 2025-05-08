@@ -25,7 +25,7 @@ jobs:
       - name: Generate SeaLights Session ID
         env:
           SL_TOKEN: ${{ secrets.SL_TOKEN }}
-          SL_APPNAME: "sp-demo-java-app"
+          SL_APPNAME: "demo-app"
           SL_BUILDNAME: "build-${{ github.run_id }}"
           SL_BRANCHNAME: "${{ github.ref_name }}"
         run: |
@@ -33,9 +33,18 @@ jobs:
             -appName "$SL_APPNAME" \
             -buildName "$SL_BUILDNAME" \
             -branchName "$SL_BRANCHNAME" \
-            -token "$SL_TOKEN" > session_id.txt
-          echo "SESSION_ID=$(cat session_id.txt)" >> $GITHUB_ENV
-          cat session_id.txt
+            -token "$SL_TOKEN" > session_id_raw.txt
+          # Extract the session ID (UUID pattern) and save to session_id.txt
+          grep -E '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' session_id_raw.txt > session_id.txt
+          # Verify the session ID was extracted
+          if [ -s session_id.txt ]; then
+            echo "Session ID extracted successfully:"
+            cat session_id.txt
+            echo "SESSION_ID=$(cat session_id.txt)" >> $GITHUB_ENV
+          else
+            echo "Error: Failed to extract session ID from output."
+            exit 1
+          fi
 
       # Upload Session ID as an artifact
       - name: Upload Session ID
@@ -73,7 +82,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Download SeaLights Java Agent (keeping as in your working version)
+      # Download SeaLights Java Agent
       - name: Download SeaLights Java Agent
         run: |
           wget -nv https://agents.sealights.co/sealights-java/sealights-java-latest.zip
