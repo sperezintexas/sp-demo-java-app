@@ -18,7 +18,7 @@ jobs:
           wget -nv https://agents.sealights.co/sealights-java/sealights-java-latest.zip
           unzip -oq sealights-java-latest.zip -d sealights
           echo "SeaLights Java Agent version used is:"
-          cat sealights/version.txt
+          cat sealights/sealights-java-version.txt
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
