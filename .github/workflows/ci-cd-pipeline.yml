@@ -1,3 +1,10 @@
+name: sealights-demo-java-app-ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 name: demo-app-CI
 
 on:
@@ -6,6 +13,111 @@ on:
   pull_request:
     branches: [main]
 
+jobs:
+  # Build stage
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Download SeaLights Java Agent
+      - name: Download SeaLights Java Agent
+        run: |
+          wget -nv https://agents.sealights.co/sealights-java/sealights-java-latest.zip
+          unzip -oq sealights-java-latest.zip -d sealights
+          echo "SeaLights Java Agent version used is:"
+          cat sealights/version.txt
+
+      # Upload SeaLights Agent as an artifact
+      - name: Upload SeaLights Agent
+        uses: actions/upload-artifact@v4
+        with:
+          name: sealights-agent
+          path: sealights/
+
+      # Generate SeaLights Session ID
+      - name: Generate SeaLights Session ID
+        env:
+          SL_TOKEN: ${{ secrets.SL_TOKEN }}
+          SL_APPNAME: "demo-app"
+          SL_BUILDNAME: "build-${{ github.run_id }}"
+          SL_BRANCHNAME: "${{ github.ref_name }}"
+        run: |
+          java -jar sealights/sl-build-scanner.jar -createBuildSession \
+            -appName "$SL_APPNAME" \
+            -buildName "$SL_BUILDNAME" \
+            -branchName "$SL_BRANCHNAME" \
+            -token "$SL_TOKEN" > session_id.txt
+          echo "SESSION_ID=$(cat session_id.txt)" >> $GITHUB_ENV
+          cat session_id.txt
+
+      # Upload Session ID as an artifact
+      - name: Upload Session ID
+        uses: actions/upload-artifact@v4
+        with:
+          name: session-id
+          path: session_id.txt
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew bootBuildImage
+
+      - name: Build Docker image
+        run: docker build -t sp-demo-java-app .
+
+  # Test stage
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Download SeaLights Agent artifact
+      - name: Download SeaLights Agent
+        uses: actions/download-artifact@v4
+        with:
+          name: sealights-agent
+          path: sealights/
+
+      # Download Session ID artifact
+      - name: Download Session ID
+        uses: actions/download-artifact@v4
+        with:
+          name: session-id
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run tests
+        run: ./gradlew test
 jobs:
   # Build stage
   build:
