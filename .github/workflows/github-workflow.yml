@@ -85,6 +85,7 @@ jobs:
         run: |
           echo "SeaLights Java Agent version used is:"
           cat sealights/sealights-java-version.txt
+          ls -l sealights/ # Debug: Confirm sl-test-listener.jar is present
 
       # Scan the build with SeaLights
       - name: Scan Build with SeaLights
@@ -108,15 +109,8 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew bootBuildImage
-          # Copy SeaLights agent to build context
-          cp -r sealights .
-          # Create Dockerfile to include SeaLights agent
-          cat <<EOF > Dockerfile
-          FROM sp-demo-java-app
-          COPY sealights/sl-test-listener.jar /app/sealights/sl-test-listener.jar
-          ENTRYPOINT ["java", "-jar", "/app/app.jar"]
-          EOF
-          docker build -t sp-demo-java-app .
+          ls -l . # Debug: Confirm sealights/ and Dockerfile are in build context
+          docker build -t sp-demo-java-app -f Dockerfile .
 
       # Authenticate to Google Cloud
       - name: Authenticate to Google Cloud
@@ -253,6 +247,7 @@ jobs:
           sed -i "s|app-name-placeholder|$SL_APPNAME|g" k8s/deployment.yaml
           sed -i "s|branch-name-placeholder|$SL_BRANCHNAME|g" k8s/deployment.yaml
           sed -i "s|environment-placeholder|$SL_ENVIRONMENT|g" k8s/deployment.yaml
+          cat k8s/deployment.yaml # Debug: Show replaced YAML
           kubectl apply -f k8s/deployment.yaml
 
       # Get Service External IP
@@ -296,10 +291,10 @@ jobs:
         run: chmod +x gradlew
 
       # Placeholder for integration tests
-      - name: Run integration tests
-        run: |
-          echo "Running integration tests (placeholder)..."
-          # Replace with your integration test command, e.g., ./gradlew integrationTest
+      re-run integration tests
+      run: |
+        echo "Running integration tests (placeholder)..."
+        # Replace with your integration test command, e.g., ./gradlew integrationTest
 
   teardown:
     needs: integration-test

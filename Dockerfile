@@ -32,5 +32,5 @@ COPY sealights/sl-test-listener.jar /app/sealights/sl-test-listener.jar
 # Expose the port the app runs on
 EXPOSE 8080
 
-# Run the application with SeaLights Coverage Listener
-ENTRYPOINT ["java", "-javaagent:/app/sealights/sl-test-listener.jar", "-jar", "app.jar"]
+# Run the application (args overridden in Kubernetes)
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
