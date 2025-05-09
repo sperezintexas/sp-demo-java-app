@@ -105,6 +105,7 @@ jobs:
       # Build Docker image
       - name: Build Docker image
         run: |
+           chmod +x ./gradlew
           ./gradlew bootBuildImage
           docker build -t sp-demo-java-app .
 
