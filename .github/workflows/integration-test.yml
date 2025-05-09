@@ -1,0 +1,37 @@
+name: Integration Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  integration-test:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # Placeholder for integration tests
+      - name: Run integration tests
+        run: |
+          # Replace with your integration test command, e.g., ./gradlew integrationTest
+          echo "Running integration tests (placeholder)..."
+          # Example: ./gradlew integrationTest

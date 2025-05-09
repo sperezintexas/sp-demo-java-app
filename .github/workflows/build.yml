@@ -1,0 +1,65 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Download SeaLights Java Agent
+      - name: Download SeaLights Java Agent
+        run: |
+          wget -nv https://agents.sealights.co/sealights-java/sealights-java-latest.zip
+          unzip -oq sealights-java-latest.zip -d sealights
+          echo "SeaLights Java Agent version used is:"
+          cat sealights/sealights-java-version.txt
+
+      # Generate SeaLights Session ID with -config
+      - name: Generate SeaLights Session ID
+        env:
+          SL_TOKEN: ${{ secrets.SL_TOKEN }}
+          SL_APPNAME: ${{ secrets.SL_APPNAME }}
+          SL_BUILDNAME: "build-${{ github.run_id }}"
+          SL_BRANCHNAME: "${{ github.ref_name }}"
+        run: |
+          echo "SL.config running config command to generate session ID..."
+          java -jar sealights/sl-build-scanner.jar -config \
+            -appname "$SL_APPNAME" \
+            -buildname "$SL_BUILDNAME" \
+            -branchname "$SL_BRANCHNAME" \
+            -token "$SL_TOKEN" \
+            -pi "com.sealights.demoapp.*"
+          echo "Output from SL.config command (session ID should be in buildSessionId.txt):"
+          cat buildSessionId.txt
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      # Upload SeaLights session ID as an artifact
+      - name: Upload Session ID
+        uses: actions/upload-artifact@v4
+        with:
+          name: session-id
+          path: buildSessionId.txt

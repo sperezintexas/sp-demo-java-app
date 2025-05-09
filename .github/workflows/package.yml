@@ -1,0 +1,79 @@
+name: Package
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  package:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Download SeaLights session ID artifact
+      - name: Download Session ID
+        uses: actions/download-artifact@v4
+        with:
+          name: session-id
+
+      # Download SeaLights Java Agent
+      - name: Download SeaLights Java Agent
+        run: |
+          wget -nv https://agents.sealights.co/sealights-java/sealights-java-latest.zip
+          unzip -oq sealights-java-latest.zip -d sealights
+          echo "SeaLights Java Agent version used is:"
+          cat sealights/sealights-java-version.txt
+
+      # Scan the build with SeaLights
+      - name: Scan Build with SeaLights
+        env:
+          SL_TOKEN: ${{ secrets.SL_TOKEN }}
+        run: |
+          SESSION_ID=$(cat buildSessionId.txt)
+          echo "Session ID: $SESSION_ID"
+          echo "Scanning build with SeaLights..."
+          java -jar sealights/sl-build-scanner.jar -scan \
+            -token "$SL_TOKEN" \
+            -buildsessionid "$SESSION_ID" \
+            -workspacepath "build/libs" \
+            -fi "*.jar" || {
+              echo "Error: Scan command failed."
+              exit 1
+            }
+
+      # Build Docker image
+      - name: Build Docker image
+        run: |
+          ./gradlew bootBuildImage
+          docker build -t sp-demo-java-app .
+
+      # Authenticate to Google Cloud
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # Set up gcloud CLI
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      # Debug: List Artifact Registry Repositories
+      - name: List Artifact Registry Repositories
+        run: |
+          gcloud artifacts repositories list --location=us-central1
+
+      # Configure Docker to use gcloud for Artifact Registry
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev
+
+      # Push Docker image to Artifact Registry
+      - name: Push Docker image to Artifact Registry
+        run: |
+          docker tag sp-demo-java-app us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/sp-demo-java-app-repo/sp-demo-java-app:${{ github.sha }}
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/sp-demo-java-app-repo/sp-demo-java-app:${{ github.sha }}
