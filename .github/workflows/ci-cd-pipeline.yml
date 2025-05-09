@@ -25,7 +25,7 @@ jobs:
       - name: Generate SeaLights Session ID
         env:
           SL_TOKEN: ${{ secrets.SL_TOKEN }}
-          SL_APPNAME: "demo-app"
+          SL_APPNAME: "sp-demo-java=app"
           SL_BUILDNAME: "build-${{ github.run_id }}"
           SL_BRANCHNAME: "${{ github.ref_name }}"
         run: |
