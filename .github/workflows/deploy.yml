@@ -1,9 +1,9 @@
 name: Deploy
 
 on:
-  push:
-    branches: [main]
-  pull_request:
+  workflow_run:
+    workflows: ["Package", "Unit Test"]
+    types: [completed]
     branches: [main]
 
 jobs:

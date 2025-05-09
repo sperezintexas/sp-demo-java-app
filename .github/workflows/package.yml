@@ -1,11 +1,10 @@
 name: Package
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Build"]
+    types: [completed]
     branches: [main]
-  pull_request:
-    branches: [main]
-
 jobs:
   package:
     needs: build

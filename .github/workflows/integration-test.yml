@@ -1,9 +1,9 @@
 name: Integration Test
 
 on:
-  push:
-    branches: [main]
-  pull_request:
+  workflow_run:
+    workflows: ["Deploy"]
+    types: [completed]
     branches: [main]
 
 jobs:
