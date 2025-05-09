@@ -101,6 +101,17 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
+      # Install gke-gcloud-auth-plugin
+      - name: Install gke-gcloud-auth-plugin
+        run: |
+          gcloud components install gke-gcloud-auth-plugin
+          gke-gcloud-auth-plugin --version
+
+      # Debug: List Artifact Registry Repositories
+      - name: List Artifact Registry Repositories
+        run: |
+          gcloud artifacts repositories list --location=us-central1
+
       # Configure Docker to use gcloud for Artifact Registry
       - name: Configure Docker for Artifact Registry
         run: |
@@ -111,6 +122,11 @@ jobs:
         run: |
           docker tag sp-demo-java-app us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/sp-demo-java-app-repo/sp-demo-java-app:${{ github.sha }}
           docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/sp-demo-java-app-repo/sp-demo-java-app:${{ github.sha }}
+
+      # Debug: List GKE Clusters
+      - name: List GKE Clusters
+        run: |
+          gcloud container clusters list --region us-central1
 
       # Get GKE credentials
       - name: Get GKE credentials
