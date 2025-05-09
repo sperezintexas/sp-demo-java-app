@@ -29,7 +29,7 @@ jobs:
           SL_BUILDNAME: "build-${{ github.run_id }}"
           SL_BRANCHNAME: "${{ github.ref_name }}"
         run: |
-          # Run the -config command and capture output
+          # Run the -config command (output goes to logs)
           echo "Running -config command to generate session ID..."
           java -jar sealights/sl-build-scanner.jar -config \
             -appname "$SL_APPNAME" \
@@ -37,7 +37,7 @@ jobs:
             -branchname "$SL_BRANCHNAME" \
             -token "$SL_TOKEN" \
             -pi "com.sealights.demoapp.*"
-          echo "Output from -config command:"
+          echo "Output from -config command (session ID should be in buildSessionId.txt):"
           cat buildSessionId.txt
 
       # Upload Session ID as an artifact
@@ -66,6 +66,26 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew bootBuildImage
 
+      # Scan the build with SeaLights
+      - name: Scan Build with SeaLights
+        env:
+          SL_TOKEN: ${{ secrets.SL_TOKEN }}
+        run: |
+          # Read the session ID directly from buildSessionId.txt
+          SESSION_ID=$(cat buildSessionId.txt)
+          echo "Session ID: $SESSION_ID"
+          
+          # Run the scan command (output goes to logs)
+          echo "Scanning build with SeaLights..."
+          java -jar sealights/sl-build-scanner.jar -scan \
+            -token "$SL_TOKEN" \
+            -buildsessionid "$SESSION_ID" \
+            -workspacepath "build/libs" \
+            -fi "*.jar" || {
+              echo "Error: Scan command failed."
+              exit 1
+            }
+
       - name: Build Docker image
         run: docker build -t sp-demo-java-app .
 
@@ -80,4 +100,31 @@ jobs:
       - name: Download SeaLights Java Agent
         run: |
           wget -nv https://agents.sealights.co/sealights-java/sealights-java-latest.zip
-          unzip -oq seal
+          unzip -oq sealights-java-latest.zip -d sealights
+          echo "SeaLights Java Agent version used is:"
+          cat sealights/sealights-java-version.txt
+
+      # Download Session ID artifact
+      - name: Download Session ID
+        uses: actions/download-artifact@v4
+        with:
+          name: session-id
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run tests
+        run: ./gradlew test
