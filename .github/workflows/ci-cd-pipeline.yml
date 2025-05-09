@@ -89,6 +89,42 @@ jobs:
       - name: Build Docker image
         run: docker build -t sp-demo-java-app .
 
+      # Authenticate to Google Cloud
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # Set up gcloud CLI
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      # Configure Docker to use gcloud for Artifact Registry
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev
+
+      # Push Docker image to Artifact Registry
+      - name: Push Docker image to Artifact Registry
+        run: |
+          docker tag sp-demo-java-app us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/sp-demo-java-app-repo/sp-demo-java-app:${{ github.sha }}
+          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/sp-demo-java-app-repo/sp-demo-java-app:${{ github.sha }}
+
+      # Get GKE credentials
+      - name: Get GKE credentials
+        run: |
+          gcloud container clusters get-credentials sp-demo-java-app-cluster --region us-central1 --project ${{ secrets.GCP_PROJECT_ID }}
+
+      # Deploy to GKE
+      - name: Deploy to GKE
+        run: |
+          # Replace the image tag in the manifest with the current commit SHA
+          sed -i "s|tag-placeholder|${{ github.sha }}|g" k8s/deployment.yaml
+          # Apply the manifest to the GKE cluster
+          kubectl apply -f k8s/deployment.yaml
+
   # Test stage
   test:
     needs: build
