@@ -291,10 +291,6 @@ jobs:
         run: chmod +x gradlew
 
       # Placeholder for integration tests
-      re-run integration tests
-      run: |
-        echo "Running integration tests (placeholder)..."
-        # Replace with your integration test command, e.g., ./gradlew integrationTest
 
   teardown:
     needs: integration-test
