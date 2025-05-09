@@ -30,14 +30,14 @@ jobs:
           SL_BRANCHNAME: "${{ github.ref_name }}"
         run: |
           # Run the -config command (output goes to logs)
-          echo "Running -config command to generate session ID..."
+          echo "SL.config running config command to generate session ID..."
           java -jar sealights/sl-build-scanner.jar -config \
             -appname "$SL_APPNAME" \
             -buildname "$SL_BUILDNAME" \
             -branchname "$SL_BRANCHNAME" \
             -token "$SL_TOKEN" \
             -pi "com.sealights.demoapp.*"
-          echo "Output from -config command (session ID should be in buildSessionId.txt):"
+          echo "Output from SL.config command (session ID should be in buildSessionId.txt):"
           cat buildSessionId.txt
 
       # Upload Session ID as an artifact
@@ -75,7 +75,7 @@ jobs:
           SESSION_ID=$(cat buildSessionId.txt)
           echo "Session ID: $SESSION_ID"
           
-          # Run the scan command (output goes to logs)
+          # SL.scan the scan command (output goes to logs)
           echo "Scanning build with SeaLights..."
           java -jar sealights/sl-build-scanner.jar -scan \
             -token "$SL_TOKEN" \
