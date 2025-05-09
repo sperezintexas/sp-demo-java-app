@@ -221,16 +221,12 @@ jobs:
         env:
           SL_TOKEN: ${{ secrets.SL_TOKEN }}
         run: |
-          echo -n "$SL_TOKEN" | base64 > sl-token-base64.txt
-          cat <<EOF > k8s/secret.yaml
-          apiVersion: v1
-          kind: Secret
-          metadata:
-            name: sealights-secret
-          type: Opaque
-          data:
-            sl-token: $(cat sl-token-base64.txt)
-          EOF
+          # Debug: Print base64-encoded token (sanitized)
+          echo -n "$SL_TOKEN" | base64 | tr -d '\n' > sl-token-base64.txt
+          echo "Base64-encoded SL_TOKEN: $(cat sl-token-base64.txt)"
+          # Create secret directly with kubectl
+          kubectl create secret generic sealights-secret --from-literal=sl-token="$SL_TOKEN" --dry-run=client -o yaml > k8s/secret.yaml
+          cat k8s/secret.yaml # Debug: Show generated YAML
           kubectl apply -f k8s/secret.yaml
 
       # Deploy to GKE
@@ -291,6 +287,10 @@ jobs:
         run: chmod +x gradlew
 
       # Placeholder for integration tests
+      - name: Run integration tests
+        run: |
+          echo "Running integration tests (placeholder)..."
+          # Replace with your integration test command, e.g., ./gradlew integrationTest
 
   teardown:
     needs: integration-test
