@@ -17,15 +17,20 @@ COPY src src
 
 # Build the application
 RUN ./gradlew build -x test
-# Runtime stage: Run the app
+
+# Create the runtime image
 FROM eclipse-temurin:21-jre
 
 WORKDIR /app
+
 # Copy the built JAR file from the build stage
 COPY --from=build /app/build/libs/*.jar app.jar
+
+# Copy the SeaLights Java Agent
+COPY sealights/sl-test-listener.jar /app/sealights/sl-test-listener.jar
 
 # Expose the port the app runs on
 EXPOSE 8080
 
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Run the application with SeaLights Coverage Listener
+ENTRYPOINT ["java", "-javaagent:/app/sealights/sl-test-listener.jar", "-jar", "app.jar"]

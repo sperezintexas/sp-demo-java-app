@@ -58,12 +58,15 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
-      # Upload SeaLights session ID as an artifact
-      - name: Upload Session ID
+      # Upload SeaLights session ID and agent as artifacts
+      - name: Upload SeaLights Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: session-id
-          path: buildSessionId.txt
+          name: sealights-artifacts
+          path: |
+            buildSessionId.txt
+            sealights/
+          retention-days: 1
 
   package:
     needs: build
@@ -71,17 +74,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Download SeaLights session ID artifact
-      - name: Download Session ID
+      # Download SeaLights artifacts
+      - name: Download SeaLights Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: session-id
+          name: sealights-artifacts
 
-      # Download SeaLights Java Agent
-      - name: Download SeaLights Java Agent
+      # Verify SeaLights Agent
+      - name: Verify SeaLights Agent
         run: |
-          wget -nv https://agents.sealights.co/sealights-java/sealights-java-latest.zip
-          unzip -oq sealights-java-latest.zip -d sealights
           echo "SeaLights Java Agent version used is:"
           cat sealights/sealights-java-version.txt
 
@@ -102,11 +103,19 @@ jobs:
               exit 1
             }
 
-      # Build Docker image
+      # Build Docker image with SeaLights agent
       - name: Build Docker image
         run: |
           chmod +x ./gradlew
           ./gradlew bootBuildImage
+          # Copy SeaLights agent to build context
+          cp -r sealights .
+          # Create Dockerfile to include SeaLights agent
+          cat <<EOF > Dockerfile
+          FROM sp-demo-java-app
+          COPY sealights/sl-test-listener.jar /app/sealights/sl-test-listener.jar
+          ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+          EOF
           docker build -t sp-demo-java-app .
 
       # Authenticate to Google Cloud
@@ -143,6 +152,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Download SeaLights artifacts
+      - name: Download SeaLights Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: sealights-artifacts
+
+      - name: Verify SeaLights Agent
+        run: |
+          echo "SeaLights Java Agent version used is:"
+          cat sealights/sealights-java-version.txt
+
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
@@ -167,6 +187,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # Download SeaLights artifacts for session ID
+      - name: Download SeaLights Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: sealights-artifacts
 
       # Authenticate to Google Cloud
       - name: Authenticate to Google Cloud
@@ -196,10 +222,37 @@ jobs:
         run: |
           gcloud container clusters get-credentials sp-demo-java-app-cluster --region us-central1 --project ${{ secrets.GCP_PROJECT_ID }}
 
+      # Create Kubernetes secret for SeaLights token
+      - name: Create Kubernetes Secret for SeaLights Token
+        env:
+          SL_TOKEN: ${{ secrets.SL_TOKEN }}
+        run: |
+          echo -n "$SL_TOKEN" | base64 > sl-token-base64.txt
+          cat <<EOF > k8s/secret.yaml
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: sealights-secret
+          type: Opaque
+          data:
+            sl-token: $(cat sl-token-base64.txt)
+          EOF
+          kubectl apply -f k8s/secret.yaml
+
       # Deploy to GKE
       - name: Deploy to GKE
+        env:
+          SL_APPNAME: ${{ secrets.SL_APPNAME }}
+          SL_BRANCHNAME: "${{ github.ref_name }}"
+          SL_ENVIRONMENT: "production" # Adjust based on branch if needed
         run: |
+          SESSION_ID=$(cat buildSessionId.txt)
+          echo "Build Session ID: $SESSION_ID"
           sed -i "s|tag-placeholder|${{ github.sha }}|g" k8s/deployment.yaml
+          sed -i "s|build-session-id-placeholder|$SESSION_ID|g" k8s/deployment.yaml
+          sed -i "s|app-name-placeholder|$SL_APPNAME|g" k8s/deployment.yaml
+          sed -i "s|branch-name-placeholder|$SL_BRANCHNAME|g" k8s/deployment.yaml
+          sed -i "s|environment-placeholder|$SL_ENVIRONMENT|g" k8s/deployment.yaml
           kubectl apply -f k8s/deployment.yaml
 
       # Get Service External IP
