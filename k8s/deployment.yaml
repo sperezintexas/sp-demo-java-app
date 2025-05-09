@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sp-demo-java-app
+  labels:
+    app: sp-demo-java-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sp-demo-java-app
+  template:
+    metadata:
+      labels:
+        app: sp-demo-java-app
+    spec:
+      containers:
+        - name: sp-demo-java-app
+          image: us-central1-docker.pkg.dev/sp-demo-java-app/sp-demo-java-app-repo/sp-demo-java-app:tag-placeholder
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sp-demo-java-app-service
+spec:
+  selector:
+    app: sp-demo-java-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: LoadBalancer
