@@ -40,10 +40,8 @@ spec:
               value: "branch-name-placeholder" # Replaced by workflow
             - name: SL_ENVIRONMENT
               value: "environment-placeholder" # Replaced by workflow
-          args:
-            - "-javaagent:/app/sealights/sl-test-listener.jar=token=$(SL_TOKEN),buildSessionId=$(SL_BUILD_SESSION_ID),appName=$(SL_APP_NAME),branchName=$(SL_BRANCH_NAME),environment=$(SL_ENVIRONMENT)"
-            - "-jar"
-            - "/app/app.jar"
+            - name: JAVA_TOOL_OPTIONS
+              value: "-javaagent:/app/sealights/sl-test-listener.jar=token=$(SL_TOKEN),buildSessionId=$(SL_BUILD_SESSION_ID),appName=$(SL_APP_NAME),branchName=$(SL_BRANCH_NAME),environment=$(SL_ENVIRONMENT)"
 ---
 apiVersion: v1
 kind: Service

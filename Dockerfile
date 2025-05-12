@@ -18,7 +18,7 @@ COPY src src
 # Build the application
 RUN ./gradlew build -x test
 
-# Create the runtime image
+# Runtime stage: Run the app
 FROM eclipse-temurin:21-jre
 
 WORKDIR /app
