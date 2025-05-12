@@ -28,6 +28,7 @@ This is a simple Spring Boot application that demonstrates the use of Spring Boo
    ```
 
 4. The application will be available at http://localhost:8080
+   A welcome page will be displayed with information about the available API endpoints.
 
 5. To stop the application:
    ```

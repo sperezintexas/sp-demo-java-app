@@ -4,116 +4,343 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sealight Java Demo Application</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px;
-            color: #333;
+        :root {
+            --primary-color: #0078c8;
+            --secondary-color: #00a5b5;
+            --accent-color: #e31937;
+            --dark-color: #1d252c;
+            --light-color: #f5f7fa;
+            --text-color: #333333;
+            --light-text: #ffffff;
+            --gray-text: #6c757d;
         }
-        .container {
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--light-color);
+        }
+
+        /* Header and Navigation */
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--accent-color);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-left: 25px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: var(--dark-color);
+            font-weight: 600;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+
+        nav ul li a:hover {
+            color: var(--primary-color);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--light-text);
+            padding: 80px 20px;
+            text-align: center;
+        }
+
+        .hero-content {
             max-width: 800px;
             margin: 0 auto;
         }
-        h1 {
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-        }
-        h2 {
-            color: #2980b9;
-            margin-top: 30px;
-        }
-        .api-section {
-            background-color: #f8f9fa;
-            border-radius: 5px;
-            padding: 20px;
+
+        .hero h1 {
+            font-size: 42px;
             margin-bottom: 20px;
+            line-height: 1.2;
         }
+
+        .hero p {
+            font-size: 18px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #c01730;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        .section-title {
+            font-size: 32px;
+            color: var(--dark-color);
+            margin-bottom: 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title:after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background-color: var(--primary-color);
+            margin: 15px auto 0;
+        }
+
+        /* API Sections */
+        .api-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .api-section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .api-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .api-section h2 {
+            color: var(--primary-color);
+            font-size: 24px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light-color);
+        }
+
         .endpoint {
-            background-color: #e9ecef;
-            border-left: 4px solid #3498db;
-            padding: 10px;
-            margin: 10px 0;
+            background-color: var(--light-color);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
             font-family: monospace;
         }
+
         .method {
             font-weight: bold;
-            color: #e74c3c;
+            color: var(--accent-color);
+            background-color: rgba(227, 25, 55, 0.1);
+            padding: 3px 8px;
+            border-radius: 4px;
         }
+
         .path {
-            color: #2c3e50;
+            color: var(--dark-color);
+            font-weight: 600;
         }
+
         .description {
-            margin-top: 5px;
+            margin-top: 8px;
             font-style: italic;
+            color: var(--gray-text);
         }
+
+        /* Footer */
         footer {
-            margin-top: 50px;
+            background-color: var(--dark-color);
+            color: var(--light-text);
+            padding: 40px 20px;
             text-align: center;
-            font-size: 0.9em;
-            color: #7f8c8d;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-content p {
+            opacity: 0.8;
+            margin-top: 20px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                padding: 15px;
+            }
+
+            nav ul {
+                margin-top: 15px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            nav ul li {
+                margin: 5px 10px;
+            }
+
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .api-container {
+                grid-template-columns: 1fr;
+            }
+
+            .endpoint {
+                padding: 10px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Welcome to <a href="https://sealights.atlassian.net/wiki/home" target="_blank">Tricentis Sealights</a> Java Demo Application</h1>
+    <!-- Header with Navigation -->
+    <header>
+        <div class="nav-container">
+            <a href="#" class="logo">Tricentis <span>Sealights</span></a>
+            <nav>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="https://sealights.atlassian.net/wiki/home" target="_blank">Documentation</a></li>
+                    <li><a href="#">API</a></li>
+                    <li><a href="#">Support</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
 
-        <p>This is a simple Spring Boot application that demonstrates RESTful API functionality for managing todos and messages.</p>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Welcome to Tricentis Sealights Java Demo Application</h1>
+            <p>A simple Spring Boot application that demonstrates RESTful API functionality for managing todos and messages.</p>
+            <a href="https://sealights.atlassian.net/wiki/home" target="_blank" class="btn">Learn More</a>
+        </div>
+    </section>
 
-        <div class="api-section">
-            <h2>Message API Endpoints</h2>
+    <!-- Main Content -->
+    <div class="main-content">
+        <h2 class="section-title">API Documentation</h2>
+        <p style="text-align: center; margin-bottom: 30px;">Explore our RESTful API endpoints for managing todos and messages.</p>
 
-            <div class="endpoint">
-                <span class="method">GET</span> <span class="path">/api/messages</span>
-                <div class="description">Get all messages</div>
+        <div class="api-container">
+            <!-- Message API Section -->
+            <div class="api-section">
+                <h2>Message API Endpoints</h2>
+
+                <div class="endpoint">
+                    <span class="method">GET</span> <span class="path">/api/messages</span>
+                    <div class="description">Get all messages</div>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method">GET</span> <span class="path">/api/messages/{id}</span>
+                    <div class="description">Get a message by ID</div>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method">POST</span> <span class="path">/api/messages</span>
+                    <div class="description">Create a new message</div>
+                </div>
             </div>
 
-            <div class="endpoint">
-                <span class="method">GET</span> <span class="path">/api/messages/{id}</span>
-                <div class="description">Get a message by ID</div>
-            </div>
+            <!-- Todo API Section -->
+            <div class="api-section">
+                <h2>Todo API Endpoints</h2>
 
-            <div class="endpoint">
-                <span class="method">POST</span> <span class="path">/api/messages</span>
-                <div class="description">Create a new message</div>
+                <div class="endpoint">
+                    <span class="method">GET</span> <span class="path">/api/todos</span>
+                    <div class="description">Get all todos</div>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method">GET</span> <span class="path">/api/todos/{id}</span>
+                    <div class="description">Get a todo by ID</div>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method">POST</span> <span class="path">/api/todos</span>
+                    <div class="description">Create a new todo</div>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method">PUT</span> <span class="path">/api/todos/{id}</span>
+                    <div class="description">Update a todo</div>
+                </div>
+
+                <div class="endpoint">
+                    <span class="method">DELETE</span> <span class="path">/api/todos/{id}</span>
+                    <div class="description">Delete a todo</div>
+                </div>
             </div>
         </div>
-
-        <div class="api-section">
-            <h2>Todo API Endpoints</h2>
-
-            <div class="endpoint">
-                <span class="method">GET</span> <span class="path">/api/todos</span>
-                <div class="description">Get all todos</div>
-            </div>
-
-            <div class="endpoint">
-                <span class="method">GET</span> <span class="path">/api/todos/{id}</span>
-                <div class="description">Get a todo by ID</div>
-            </div>
-
-            <div class="endpoint">
-                <span class="method">POST</span> <span class="path">/api/todos</span>
-                <div class="description">Create a new todo</div>
-            </div>
-
-            <div class="endpoint">
-                <span class="method">PUT</span> <span class="path">/api/todos/{id}</span>
-                <div class="description">Update a todo</div>
-            </div>
-
-            <div class="endpoint">
-                <span class="method">DELETE</span> <span class="path">/api/todos/{id}</span>
-                <div class="description">Delete a todo</div>
-            </div>
-        </div>
-
-        <footer>
-            <p>Sealight Java Demo Application &copy; 2025</p>
-        </footer>
     </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <a href="#" class="logo" style="color: white;">Tricentis <span>Sealights</span></a>
+            <p>Sealight Java Demo Application &copy; 2025</p>
+        </div>
+    </footer>
 </body>
 </html>
