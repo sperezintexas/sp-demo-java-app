@@ -101,9 +101,9 @@ docker run -p 8080:8080 \
 
 ### Messages
 
-- `GET /` - Get all messages
-- `GET /{id}` - Get a message by ID
-- `POST /` - Create a new message
+- `GET /api/messages` - Get all messages
+- `GET /api/messages/{id}` - Get a message by ID
+- `POST /api/messages` - Create a new message
 
 ## Development
 

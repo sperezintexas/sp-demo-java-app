@@ -250,7 +250,7 @@ jobs:
       - name: Get Service External IP
         run: |
           echo "Waiting for external IP to be assigned..."
-          for i in {1..12}; do
+          for i in {1..30}; do
             EXTERNAL_IP=$(kubectl get svc sp-demo-java-app-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
             if [ -n "$EXTERNAL_IP" ]; then
               echo "App is accessible at: http://$EXTERNAL_IP"
@@ -260,7 +260,7 @@ jobs:
             sleep 10
           done
           if [ -z "$EXTERNAL_IP" ]; then
-            echo "Error: Could not get external IP after 2 minutes."
+            echo "Error: Could not get external IP after 5 minutes."
             exit 1
           fi
 

@@ -4,11 +4,6 @@ This directory contains scripts to test the SeaLights Session ID generation proc
 
 ## Available Scripts
 
-### Windows
-
-- `test-sealights-session.bat`: Batch file wrapper (easiest to use - just double-click)
-- `test-sealights-session.ps1`: PowerShell script for Windows environments
-
 ### Linux/macOS (Bash)
 
 - `test-sealights-session.sh`: Bash script for Linux/macOS environments

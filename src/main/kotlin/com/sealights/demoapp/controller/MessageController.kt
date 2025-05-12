@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.net.URI
 
 @RestController
-@RequestMapping("/")
+@RequestMapping("/api/messages")
 class MessageController(private val messageService: MessageService) {
     @GetMapping
     fun getAllMessages() = ResponseEntity.ok(messageService.findMessages())
