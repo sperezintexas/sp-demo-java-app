@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sealight Java Demo Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+        }
+        .api-section {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .endpoint {
+            background-color: #e9ecef;
+            border-left: 4px solid #3498db;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+        .method {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .path {
+            color: #2c3e50;
+        }
+        .description {
+            margin-top: 5px;
+            font-style: italic;
+        }
+        footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to <a href="https://sealights.atlassian.net/wiki/home" target="_blank">Tricentis Sealights</a> Java Demo Application</h1>
+
+        <p>This is a simple Spring Boot application that demonstrates RESTful API functionality for managing todos and messages.</p>
+
+        <div class="api-section">
+            <h2>Message API Endpoints</h2>
+
+            <div class="endpoint">
+                <span class="method">GET</span> <span class="path">/api/messages</span>
+                <div class="description">Get all messages</div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method">GET</span> <span class="path">/api/messages/{id}</span>
+                <div class="description">Get a message by ID</div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method">POST</span> <span class="path">/api/messages</span>
+                <div class="description">Create a new message</div>
+            </div>
+        </div>
+
+        <div class="api-section">
+            <h2>Todo API Endpoints</h2>
+
+            <div class="endpoint">
+                <span class="method">GET</span> <span class="path">/api/todos</span>
+                <div class="description">Get all todos</div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method">GET</span> <span class="path">/api/todos/{id}</span>
+                <div class="description">Get a todo by ID</div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method">POST</span> <span class="path">/api/todos</span>
+                <div class="description">Create a new todo</div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method">PUT</span> <span class="path">/api/todos/{id}</span>
+                <div class="description">Update a todo</div>
+            </div>
+
+            <div class="endpoint">
+                <span class="method">DELETE</span> <span class="path">/api/todos/{id}</span>
+                <div class="description">Delete a todo</div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Sealight Java Demo Application &copy; 2025</p>
+        </footer>
+    </div>
+</body>
+</html>
