@@ -149,6 +149,7 @@ jobs:
           docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/sp-demo-java-app-repo/sp-demo-java-app:${{ github.sha }}
 
   unit-test:
+    name: Unit Test
     needs: build
     if: ${{ github.event.inputs.run_teardown_only != 'true' }}
     runs-on: ubuntu-latest
@@ -165,6 +166,7 @@ jobs:
         run: |
           echo "SeaLights Java Agent version used is:"
           cat sealights/sealights-java-version.txt
+          ls -la sealights/
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -182,8 +184,32 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run unit tests
-        run: ./gradlew test
+      # Run tests with SeaLights instrumentation
+      - name: Run unit tests with SeaLights instrumentation
+        env:
+          SL_TOKEN: ${{ secrets.SL_TOKEN }}
+          SL_APPNAME: ${{ secrets.SL_APPNAME }}
+          SL_BUILDNAME: "build-${{ github.run_id }}"
+          SL_BRANCHNAME: "${{ github.ref_name }}"
+          SL_LAB_ID: "Unit Test"
+        run: |
+          SESSION_ID=$(cat buildSessionId.txt)
+          echo "Using SeaLights session ID: $SESSION_ID"
+
+          # Run tests with SeaLights agent
+          ./gradlew test \
+            -Dsl.token=$SL_TOKEN \
+            -Dsl.buildsessionidfile=buildSessionId.txt \
+            -Dsl.includes="com.sealights.demoapp.*" \
+            -Dsl.log.level=info \
+            -Dsl.testStage="Unit Test" \
+            -javaagent:sealights/sl-test-listener.jar
+
+          # Report test results to SeaLights
+          java -jar sealights/sl-test-listener.jar toSealights \
+            -token $SL_TOKEN \
+            -buildsessionidfile buildSessionId.txt \
+            -testStage "Unit Test"
 
   deploy:
     needs: [package, unit-test]
@@ -281,6 +307,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Download SeaLights artifacts
+      - name: Download SeaLights Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: sealights-artifacts
+
+      - name: Verify SeaLights Agent
+        run: |
+          echo "SeaLights Java Agent version used is:"
+          cat sealights/sealights-java-version.txt
+          ls -la sealights/
+
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
@@ -297,11 +335,32 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # Placeholder for integration tests
-      - name: Run integration tests
+      # Run integration tests with SeaLights instrumentation
+      - name: Run integration tests with SeaLights instrumentation
+        env:
+          SL_TOKEN: ${{ secrets.SL_TOKEN }}
+          SL_APPNAME: ${{ secrets.SL_APPNAME }}
+          SL_BUILDNAME: "build-${{ github.run_id }}"
+          SL_BRANCHNAME: "${{ github.ref_name }}"
+          SL_LAB_ID: "Integration Tests"
         run: |
-          echo "Running integration tests (placeholder)..."
-          # Replace with your integration test command, e.g., ./gradlew integrationTest
+          SESSION_ID=$(cat buildSessionId.txt)
+          echo "Using SeaLights session ID: $SESSION_ID"
+
+          # Run tests with SeaLights agent
+          ./gradlew test \
+            -Dsl.token=$SL_TOKEN \
+            -Dsl.buildsessionidfile=buildSessionId.txt \
+            -Dsl.includes="com.sealights.demoapp.*" \
+            -Dsl.log.level=info \
+            -Dsl.testStage="Integration Tests" \
+            -javaagent:sealights/sl-test-listener.jar
+
+          # Report test results to SeaLights
+          java -jar sealights/sl-test-listener.jar toSealights \
+            -token $SL_TOKEN \
+            -buildsessionidfile buildSessionId.txt \
+            -testStage "Integration Tests"
 
   teardown:
     needs: integration-test
