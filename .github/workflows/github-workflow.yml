@@ -198,9 +198,9 @@ jobs:
 
           # Starting Unit Test Stage
           java -jar sealights/sl-test-listener.jar start \
-            -Dsl.token=$SL_TOKEN \
-            -Dsl.buildsessionidfile=buildSessionId.txt \
-            -Dsl.tags=unitTest \
+            -token $SL_TOKEN \
+            -buildsessionidfile buildSessionId.txt \
+            -tags unitTest \
             -testStage "Unit Test"
 
       - name: Run tests with SeaLights agent
@@ -221,19 +221,19 @@ jobs:
           SL_TOKEN: ${{ secrets.SL_TOKEN }}
         run: |
           java -jar sealights/sl-test-listener.jar uploadReports \
-            -Dsl.token=$SL_TOKEN \
-            -Dsl.buildsessionidfile=buildSessionId.txt \
-            -Dsl.reportFilesFolder=build/test-results/test \
-            -Dsl.source="Junit xml Report" \
-            -Dsl.type=JUnitReport
+            -token $SL_TOKEN \
+            -buildsessionidfile buildSessionId.txt \
+            -reportFilesFolder build/test-results/test \
+            -source "Junit xml Report" \
+            -type JUnitReport
 
       - name: End SeaLights Unit Test Stage
         env:
           SL_TOKEN: ${{ secrets.SL_TOKEN }}
         run: |
           java -jar sealights/sl-test-listener.jar end \
-            -Dsl.token=$SL_TOKEN \
-            -Dsl.buildsessionidfile=buildSessionId.txt
+            -token $SL_TOKEN \
+            -buildsessionidfile buildSessionId.txt
 
   deploy:
     needs: [package, unit-test]
