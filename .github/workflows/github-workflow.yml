@@ -200,7 +200,6 @@ jobs:
           java -jar sealights/sl-test-listener.jar start \
             -token $SL_TOKEN \
             -buildsessionidfile buildSessionId.txt \
-            -tags unitTest \
             -testStage "Unit Test"
 
       - name: Run tests with SeaLights agent
