@@ -185,7 +185,7 @@ jobs:
         run: chmod +x gradlew
 
       # Run tests with SeaLights instrumentation
-      - name: Run unit tests with SeaLights instrumentation
+      - name: Start SeaLights Unit Test Stage
         env:
           SL_TOKEN: ${{ secrets.SL_TOKEN }}
           SL_APPNAME: ${{ secrets.SL_APPNAME }}
@@ -197,14 +197,16 @@ jobs:
           echo "Using SeaLights session ID: $SESSION_ID"
 
           # Starting Unit Test Stage
-          echo "Start Unit Test"
           java -jar sealights/sl-test-listener.jar start \
-           -token $SL_TOKEN \
-           -buildsessionidfile buildSessionId.txt \
-           -testStage "Unit Test"
-          
-          # Run tests with SeaLights agent
-          echo "Run Unit Test"
+            -Dsl.token=$SL_TOKEN \
+            -Dsl.buildsessionidfile=buildSessionId.txt \
+            -Dsl.tags=unitTest \
+            -testStage "Unit Test"
+
+      - name: Run tests with SeaLights agent
+        env:
+          SL_TOKEN: ${{ secrets.SL_TOKEN }}
+        run: |
           ./gradlew test \
             -Dsl.token=$SL_TOKEN \
             -Dsl.buildsessionidfile=buildSessionId.txt \
@@ -214,18 +216,23 @@ jobs:
             -Dsl.testStage="Unit Test" \
             -javaagent:sealights/sl-test-listener.jar
 
-          # Upload Report test results to SeaLights
-          echo "Upload Report test"
+      - name: Upload test results to SeaLights
+        env:
+          SL_TOKEN: ${{ secrets.SL_TOKEN }}
+        run: |
           java -jar sealights/sl-test-listener.jar uploadReports \
             -Dsl.token=$SL_TOKEN \
             -Dsl.buildsessionidfile=buildSessionId.txt \
             -Dsl.reportFilesFolder=build/test-results/test \
             -Dsl.source="Junit xml Report" \
             -Dsl.type=JUnitReport
-          
-          # End SeaLight Unit Test Stage
+
+      - name: End SeaLights Unit Test Stage
+        env:
+          SL_TOKEN: ${{ secrets.SL_TOKEN }}
+        run: |
           java -jar sealights/sl-test-listener.jar end \
-             -Dsl.token=$SL_TOKEN \
+            -Dsl.token=$SL_TOKEN \
             -Dsl.buildsessionidfile=buildSessionId.txt
 
   deploy:
