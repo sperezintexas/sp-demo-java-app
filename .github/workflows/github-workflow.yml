@@ -196,20 +196,35 @@ jobs:
           SESSION_ID=$(cat buildSessionId.txt)
           echo "Using SeaLights session ID: $SESSION_ID"
 
+          # Starting Unit Test Stage
+          java -jar sealights/sl-test-listener.jar start \
+             -Dsl.token=$SL_TOKEN \
+            -Dsl.buildsessionidfile=buildSessionId.txt \
+            -Dsl.tags=unitTest \
+            -testStage "Unit Test"
+          
           # Run tests with SeaLights agent
           ./gradlew test \
             -Dsl.token=$SL_TOKEN \
             -Dsl.buildsessionidfile=buildSessionId.txt \
             -Dsl.includes="com.sealights.demoapp.*" \
             -Dsl.log.level=info \
+            -Dsl.tags=unitTest \
             -Dsl.testStage="Unit Test" \
             -javaagent:sealights/sl-test-listener.jar
 
-          # Report test results to SeaLights
-          java -jar sealights/sl-test-listener.jar toSealights \
-            -token $SL_TOKEN \
-            -buildsessionidfile buildSessionId.txt \
-            -testStage "Unit Test"
+          # Upload Report test results to SeaLights
+          java -jar sealights/sl-test-listener.jar uploadReports \
+            -Dsl.token=$SL_TOKEN \
+            -Dsl.buildsessionidfile=buildSessionId.txt \
+            -Dsl.reportFilesFolder=build/test-results/test \
+            -Dsl.source="Junit xml Report" \
+            -Dsl.type=JUnitReport
+          
+          # End SeaLight Unit Test Stage
+          java -jar sealights/sl-test-listener.jar end \
+             -Dsl.token=$SL_TOKEN \
+            -Dsl.buildsessionidfile=buildSessionId.txt
 
   deploy:
     needs: [package, unit-test]
