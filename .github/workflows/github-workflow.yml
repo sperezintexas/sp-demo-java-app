@@ -206,14 +206,7 @@ jobs:
         env:
           SL_TOKEN: ${{ secrets.SL_TOKEN }}
         run: |
-          ./gradlew test \
-            -Dsl.token=$SL_TOKEN \
-            -Dsl.buildsessionidfile=buildSessionId.txt \
-            -Dsl.includes="com.sealights.demoapp.*" \
-            -Dsl.log.level=info \
-            -Dsl.tags=unitTest \
-            -Dsl.testStage="Unit Test" \
-            -javaagent:sealights/sl-test-listener.jar
+          ./gradlew test
 
       - name: Upload test results to SeaLights
         env:
