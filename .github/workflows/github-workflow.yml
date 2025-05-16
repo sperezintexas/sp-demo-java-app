@@ -197,13 +197,14 @@ jobs:
           echo "Using SeaLights session ID: $SESSION_ID"
 
           # Starting Unit Test Stage
+          echo "Start Unit Test"
           java -jar sealights/sl-test-listener.jar start \
-             -Dsl.token=$SL_TOKEN \
-            -Dsl.buildsessionidfile=buildSessionId.txt \
-            -Dsl.tags=unitTest \
-            -testStage "Unit Test"
+           -token $SL_TOKEN \
+           -buildsessionidfile buildSessionId.txt \
+           -testStage "Unit Test"
           
           # Run tests with SeaLights agent
+          echo "Run Unit Test"
           ./gradlew test \
             -Dsl.token=$SL_TOKEN \
             -Dsl.buildsessionidfile=buildSessionId.txt \
@@ -214,6 +215,7 @@ jobs:
             -javaagent:sealights/sl-test-listener.jar
 
           # Upload Report test results to SeaLights
+          echo "Upload Report test"
           java -jar sealights/sl-test-listener.jar uploadReports \
             -Dsl.token=$SL_TOKEN \
             -Dsl.buildsessionidfile=buildSessionId.txt \
