@@ -207,7 +207,7 @@ jobs:
           java -jar sealights/sl-test-listener.jar uploadReports \
             -token $SL_TOKEN \
             -buildsessionidfile buildSessionId.txt \
-            -reportFilesFolder build/test-results/test \
+            -reportFiles build/test-results/test/*.xml \
             -source "Junit xml Report" \
             -type JUnitReport
 
@@ -397,7 +397,7 @@ jobs:
           java -jar sealights/sl-test-listener.jar uploadReports \
             -token $SL_TOKEN \
             -buildsessionidfile buildSessionId.txt \
-            -reportFilesFolder build/test-results/integrationTest \
+            -reportFiles build/test-results/integrationTest/*.xml \
             -source "integrationTest xml Report" \
             -type JUnitReport
 
