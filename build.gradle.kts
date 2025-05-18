@@ -164,4 +164,33 @@ tasks.test {
 
 	// Add -javaagent JVM argument
 	jvmArgs("-javaagent:${mockitoJar}")
+
+	// Configure test logging to show test execution in the console
+    testLogging {
+        events("passed", "skipped", "failed")
+        showStandardStreams = true
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+
+    // Add a test listener to print a summary at the end
+    addTestListener(object : TestListener {
+        override fun beforeSuite(suite: TestDescriptor) {}
+
+        override fun afterSuite(suite: TestDescriptor, result: TestResult) {
+            if (suite.parent == null) { // Root suite
+                println("\nTest Summary: ${result.testCount} tests, " +
+                        "${result.successfulTestCount} passed, " +
+                        "${result.failedTestCount} failed, " +
+                        "${result.skippedTestCount} skipped")
+                println("${result.successfulTestCount} of ${result.testCount} tests completed, ${result.failedTestCount} failed")
+            }
+        }
+
+        override fun beforeTest(testDescriptor: TestDescriptor) {}
+
+        override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) {}
+    })
 }

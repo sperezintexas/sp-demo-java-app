@@ -191,7 +191,8 @@ jobs:
           java -jar sealights/sl-test-listener.jar start \
             -token $SL_TOKEN \
             -buildsessionidfile buildSessionId.txt \
-            -testStage "Unit Test"
+            -testStage "Unit Test" \
+            -Dsl.calibrationLearning=true
 
       - name: Run tests with SeaLights agent
         env:
