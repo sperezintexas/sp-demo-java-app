@@ -161,8 +161,11 @@ tasks.test {
 		}
 	}
 
-	// Add -javaagent JVM argument
-	jvmArgs("-javaagent:${mockitoJar}")
+
+	// Disable binary results to avoid generating output.bin files
+	reports {
+		junitXml.required.set(true)
+	}
 
 	// Configure test logging to show test execution in the console
     testLogging {
@@ -192,4 +195,20 @@ tasks.test {
 
         override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) {}
     })
+}
+
+// Task to clean test directories after tests run
+task<Delete>("cleanTestDirs") {
+    delete(fileTree("${buildDir}/test-results/test/binary"))
+    delete(fileTree("${buildDir}/test-results/integrationTest/binary"))
+}
+
+// Make sure cleanTestDirs runs after tests
+tasks.test {
+    finalizedBy("cleanTestDirs")
+}
+
+// Make sure cleanTestDirs runs after integration tests
+tasks.named("integrationTest") {
+    finalizedBy("cleanTestDirs")
 }
