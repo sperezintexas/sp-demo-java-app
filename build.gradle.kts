@@ -91,6 +91,13 @@ val integrationTest = task<Test>("integrationTest") {
     // Make sure integration tests run after unit tests
     shouldRunAfter("test")
 
+    // Wait for 2 minutes before running integration tests
+    doFirst {
+        println("Waiting for 2 minutes before running integration tests...")
+        Thread.sleep(120000) // 2 minutes in milliseconds
+        println("Wait completed, proceeding with integration tests.")
+    }
+
     // Configure reports
     reports {
         junitXml.required.set(true)
@@ -197,18 +204,26 @@ tasks.test {
     })
 }
 
+// Task to clean test directories before tests run
+task<Delete>("cleanTestDirsBefore") {
+    delete("${layout.buildDirectory.get()}/test-results/test/binary")
+    delete("${layout.buildDirectory.get()}/test-results/integrationTest/binary")
+}
+
 // Task to clean test directories after tests run
-task<Delete>("cleanTestDirs") {
-    delete(fileTree("${buildDir}/test-results/test/binary"))
-    delete(fileTree("${buildDir}/test-results/integrationTest/binary"))
+task<Delete>("cleanTestDirsAfter") {
+    delete("${buildDir}/test-results/test/binary")
+    delete("${buildDir}/test-results/integrationTest/binary")
 }
 
-// Make sure cleanTestDirs runs after tests
+// Make sure test directories are cleaned before and after tests
 tasks.test {
-    finalizedBy("cleanTestDirs")
+    dependsOn("cleanTestDirsBefore")
+    finalizedBy("cleanTestDirsAfter")
 }
 
-// Make sure cleanTestDirs runs after integration tests
+// Make sure test directories are cleaned before and after integration tests
 tasks.named("integrationTest") {
-    finalizedBy("cleanTestDirs")
+    dependsOn("cleanTestDirsBefore")
+    finalizedBy("cleanTestDirsAfter")
 }
