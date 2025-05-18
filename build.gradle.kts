@@ -94,7 +94,6 @@ val integrationTest = task<Test>("integrationTest") {
     // Configure reports
     reports {
         junitXml.required.set(true)
-        html.required.set(true)
     }
 
     // Configure test logging to show test execution in the console
