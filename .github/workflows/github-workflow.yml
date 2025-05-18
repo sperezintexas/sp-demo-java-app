@@ -183,6 +183,7 @@ jobs:
           SL_BUILDNAME: "build-${{ github.run_id }}"
           SL_BRANCHNAME: "${{ github.ref_name }}"
           SL_LAB_ID: "Unit Test"
+          SL_CALIBRATION_LEARNING: "true"
         run: |
           SESSION_ID=$(cat buildSessionId.txt)
           echo "Using SeaLights session ID: $SESSION_ID"
@@ -191,8 +192,7 @@ jobs:
           java -jar sealights/sl-test-listener.jar start \
             -token $SL_TOKEN \
             -buildsessionidfile buildSessionId.txt \
-            -testStage "Unit Test" \
-            -Dsl.calibrationLearning=true
+            -testStage "Unit Test"
 
       - name: Run tests with SeaLights agent
         env:
