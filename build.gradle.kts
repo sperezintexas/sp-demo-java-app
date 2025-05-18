@@ -212,8 +212,8 @@ task<Delete>("cleanTestDirsBefore") {
 
 // Task to clean test directories after tests run
 task<Delete>("cleanTestDirsAfter") {
-    delete("${buildDir}/test-results/test/binary")
-    delete("${buildDir}/test-results/integrationTest/binary")
+    delete("${layout.buildDirectory.get()}/test-results/test/binary")
+    delete("${layout.buildDirectory.get()}/test-results/integrationTest/binary")
 }
 
 // Make sure test directories are cleaned before and after tests
