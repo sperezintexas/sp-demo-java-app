@@ -369,6 +369,13 @@ jobs:
             -buildsessionidfile buildSessionId.txt \
             -testStage "Integration Tests"
 
+      # Wait for 2 minutes before running integration tests
+      - name: Wait for 2 minutes before running integration tests
+        run: |
+          echo "Waiting for 2 minutes before running integration tests..."
+          sleep 120
+          echo "Wait completed, proceeding with integration tests."
+
       # Run integration tests with SeaLights agent
       - name: Run integration tests with SeaLights agent
         env:
@@ -379,12 +386,6 @@ jobs:
 
           # Run integration tests with SeaLights agent
           ./gradlew integrationTest \
-            -token $SL_TOKEN \
-            -buildsessionidfile buildSessionId.txt \
-            -Dsl.includes="com.sealights.demoapp.*" \
-            -Dsl.log.level=info \
-            -Dsl.testStage="Integration Tests" \
-            -javaagent:sealights/sl-test-listener.jar \
             -DAPI_ENDPOINT=$API_ENDPOINT
 
       # Upload integration test results to SeaLights
