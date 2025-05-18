@@ -396,8 +396,8 @@ jobs:
           java -jar sealights/sl-test-listener.jar uploadReports \
             -token $SL_TOKEN \
             -buildsessionidfile buildSessionId.txt \
-            -reportFilesFolder build/test-results/integrationTest \
-            -source "Junit xml Report" \
+            -reportFilesFolder build/test-results/integrationTest/TEST-*.xml \
+            -source "integrationTest xml Report" \
             -type JUnitReport
 
       # End SeaLights Integration Test Stage
