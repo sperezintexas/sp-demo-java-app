@@ -221,6 +221,8 @@ jobs:
   deploy:
     needs: [package, unit-test]
     runs-on: ubuntu-latest
+    outputs:
+      api_endpoint: ${{ steps.get_external_ip.outputs.api_endpoint }}
     steps:
       - uses: actions/checkout@v4
 
@@ -290,12 +292,14 @@ jobs:
 
       # Get Service External IP
       - name: Get Service External IP
+        id: get_external_ip
         run: |
           echo "Waiting for external IP to be assigned..."
           for i in {1..30}; do
             EXTERNAL_IP=$(kubectl get svc sp-demo-java-app-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
             if [ -n "$EXTERNAL_IP" ]; then
               echo "App is accessible at: http://$EXTERNAL_IP"
+              echo "api_endpoint=http://$EXTERNAL_IP" >> $GITHUB_OUTPUT
               break
             fi
             echo "External IP not yet assigned, waiting 10 seconds..."
@@ -309,6 +313,8 @@ jobs:
   integration-test:
     needs: deploy
     runs-on: ubuntu-latest
+    env:
+      API_ENDPOINT: ${{ needs.deploy.outputs.api_endpoint }}
     steps:
       - uses: actions/checkout@v4
 
@@ -340,8 +346,13 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # Run integration tests with SeaLights instrumentation
-      - name: Run integration tests with SeaLights instrumentation
+      # Log the API endpoint from deploy job
+      - name: Log API endpoint
+        run: |
+          echo "Using API endpoint from deploy job: $API_ENDPOINT"
+
+      # Start SeaLights Integration Test Stage
+      - name: Start SeaLights Integration Test Stage
         env:
           SL_TOKEN: ${{ secrets.SL_TOKEN }}
           SL_APPNAME: ${{ secrets.SL_APPNAME }}
@@ -352,20 +363,50 @@ jobs:
           SESSION_ID=$(cat buildSessionId.txt)
           echo "Using SeaLights session ID: $SESSION_ID"
 
-          # Run tests with SeaLights agent
-          ./gradlew test \
-            -Dsl.token=$SL_TOKEN \
-            -Dsl.buildsessionidfile=buildSessionId.txt \
-            -Dsl.includes="com.sealights.demoapp.*" \
-            -Dsl.log.level=info \
-            -Dsl.testStage="Integration Tests" \
-            -javaagent:sealights/sl-test-listener.jar
-
-          # Report test results to SeaLights
-          java -jar sealights/sl-test-listener.jar toSealights \
+          # Starting Integration Test Stage
+          java -jar sealights/sl-test-listener.jar start \
             -token $SL_TOKEN \
             -buildsessionidfile buildSessionId.txt \
             -testStage "Integration Tests"
+
+      # Run integration tests with SeaLights agent
+      - name: Run integration tests with SeaLights agent
+        env:
+          SL_TOKEN: ${{ secrets.SL_TOKEN }}
+          API_ENDPOINT: ${{ env.API_ENDPOINT }}
+        run: |
+          echo "Using API endpoint: $API_ENDPOINT"
+
+          # Run integration tests with SeaLights agent
+          ./gradlew integrationTest \
+            -token $SL_TOKEN \
+            -buildsessionidfile buildSessionId.txt \
+            -Dsl.includes="com.sealights.demoapp.*" \
+            -Dsl.log.level=info \
+            -Dsl.testStage="Integration Tests" \
+            -javaagent:sealights/sl-test-listener.jar \
+            -DAPI_ENDPOINT=$API_ENDPOINT
+
+      # Upload integration test results to SeaLights
+      - name: Upload integration test results to SeaLights
+        env:
+          SL_TOKEN: ${{ secrets.SL_TOKEN }}
+        run: |
+          java -jar sealights/sl-test-listener.jar uploadReports \
+            -token $SL_TOKEN \
+            -buildsessionidfile buildSessionId.txt \
+            -reportFilesFolder build/test-results/integrationTest \
+            -source "Junit xml Report" \
+            -type JUnitReport
+
+      # End SeaLights Integration Test Stage
+      - name: End SeaLights Integration Test Stage
+        env:
+          SL_TOKEN: ${{ secrets.SL_TOKEN }}
+        run: |
+          java -jar sealights/sl-test-listener.jar end \
+            -token $SL_TOKEN \
+            -buildsessionidfile buildSessionId.txt
 
   teardown:
     needs: integration-test
