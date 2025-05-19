@@ -95,6 +95,8 @@ jobs:
           SESSION_ID=$(cat buildSessionId.txt)
           echo "Session ID: $SESSION_ID"
           echo "Scanning build with SeaLights..."
+          pwd
+          ls build/libs
           java -jar sealights/sl-build-scanner.jar -scan \
             -token "$SL_TOKEN" \
             -buildsessionid "$SESSION_ID" \
