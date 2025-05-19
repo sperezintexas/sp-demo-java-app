@@ -41,6 +41,7 @@ repositories {
 val logVersion = "2.0.17"
 val logbackVersion = "1.5.18"
 val mockitoVersion = "5.15.2"
+val byteBuddyVersion = "1.15.11"
 val springBootVersion = "3.2.6"
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
@@ -55,6 +56,7 @@ dependencies {
 
 	testImplementation("org.mockito:mockito-core:$mockitoVersion")
 	testImplementation("org.mockito:mockito-junit-jupiter:$mockitoVersion")
+	testImplementation("net.bytebuddy:byte-buddy-agent:$byteBuddyVersion")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
@@ -158,6 +160,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 }
 tasks.test {
 	val mockitoJar = "${layout.buildDirectory.get().asFile}/libs/mockito-core-${mockitoVersion}.jar"
+	val byteBuddyAgentJar = configurations.testRuntimeClasspath.get().find { it.name.contains("byte-buddy-agent-${byteBuddyVersion}") }
 
 	// Ensure JAR is available before tests
 	dependsOn(tasks.named("jar"))
@@ -166,8 +169,14 @@ tasks.test {
 			from(configurations.testRuntimeClasspath.get().find { it.name.contains("mockito-core-${mockitoVersion}") })
 			into("${layout.buildDirectory.get().asFile}/libs")
 		}
+		copy {
+			from(byteBuddyAgentJar)
+			into("${layout.buildDirectory.get().asFile}/libs")
+		}
 	}
 
+	// Configure byte-buddy-agent as a Java agent
+	jvmArgs("-javaagent:${byteBuddyAgentJar}")
 
 	// Disable binary results to avoid generating output.bin files
 	reports {

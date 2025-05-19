@@ -93,6 +93,49 @@ class TodoRepositoryIntegrationTest {
         // Compare the response with the expected JSON, now that createdAt has been removed from both
         JSONAssert.assertEquals(expectedResponseObj.toString(), actualResponseObj.toString(), JSONCompareMode.STRICT)
 
+        // UPDATE the Todo to mark it as completed
+        val updatedTodoJson = JSONObject(todoJson)
+        updatedTodoJson.put("completed", true)
+        updatedTodoJson.put("id", createdTodoId)  // Include the ID for the update
+
+        val updateRequest = HttpRequest.newBuilder()
+            .uri(URI.create("$apiEndpoint/api/todos/$createdTodoId"))
+            .header("Content-Type", "application/json")
+            .PUT(HttpRequest.BodyPublishers.ofString(updatedTodoJson.toString()))
+            .build()
+
+        // Print the complete URL before making the PUT request
+        println("[DEBUG_LOG] Sending PUT request to: ${updateRequest.uri()}")
+        println("[DEBUG_LOG] Request body: ${updatedTodoJson.toString()}")
+
+        val updateResponse = httpClient.send(updateRequest, HttpResponse.BodyHandlers.ofString())
+
+        // Verify the Todo was updated successfully
+        assertEquals(200, updateResponse.statusCode())
+        val updatedResponseJson = JSONObject(updateResponse.body())
+        assertEquals(createdTodoId, updatedResponseJson.getLong("id"))
+        assertEquals("Integration Test Todo", updatedResponseJson.getString("title"))
+        assertEquals("Created during integration test", updatedResponseJson.getString("description"))
+        assertTrue(updatedResponseJson.getBoolean("completed"))
+
+        // GET the Todo again to verify the update was persisted
+        val getUpdatedRequest = HttpRequest.newBuilder()
+            .uri(URI.create("$apiEndpoint/api/todos/$createdTodoId"))
+            .GET()
+            .build()
+
+        println("[DEBUG_LOG] Sending GET request for updated Todo to: ${getUpdatedRequest.uri()}")
+
+        val getUpdatedResponse = httpClient.send(getUpdatedRequest, HttpResponse.BodyHandlers.ofString())
+
+        // Verify the updated Todo can be retrieved
+        assertEquals(200, getUpdatedResponse.statusCode())
+        val updatedTodoFromGet = JSONObject(getUpdatedResponse.body())
+        assertEquals(createdTodoId, updatedTodoFromGet.getLong("id"))
+        assertEquals("Integration Test Todo", updatedTodoFromGet.getString("title"))
+        assertEquals("Created during integration test", updatedTodoFromGet.getString("description"))
+        assertTrue(updatedTodoFromGet.getBoolean("completed"))
+
         // Cleanup - DELETE the Todo
         val deleteRequest = HttpRequest.newBuilder()
             .uri(URI.create("$apiEndpoint/api/todos/$createdTodoId"))
