@@ -68,6 +68,14 @@ jobs:
             sealights/
           retention-days: 1
 
+      # Upload build artifacts
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: build/libs/
+          retention-days: 1
+
   package:
     needs: build
     runs-on: ubuntu-latest
@@ -79,6 +87,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: sealights-artifacts
+
+      # Download build artifacts
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: build/libs
 
       # Verify SeaLights Agent
       - name: Verify SeaLights Agent
