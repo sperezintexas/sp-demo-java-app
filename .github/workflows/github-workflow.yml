@@ -146,7 +146,7 @@ jobs:
 
   unit-test:
     name: Unit Test
-    needs: build
+    needs: [build, package]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
