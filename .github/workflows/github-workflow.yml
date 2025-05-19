@@ -183,7 +183,7 @@ jobs:
           SL_BUILDNAME: "build-${{ github.run_id }}"
           SL_BRANCHNAME: "${{ github.ref_name }}"
           SL_LAB_ID: "Unit Test"
-          SL_CALIBRATION_LEARNING: "true"
+          SL_CALIBRATION_LEARNING: "false"
         run: |
           SESSION_ID=$(cat buildSessionId.txt)
           echo "Using SeaLights session ID: $SESSION_ID"
