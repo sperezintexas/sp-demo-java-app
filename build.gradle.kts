@@ -1,10 +1,12 @@
+import org.gradle.testing.jacoco.tasks.JacocoReport
+
 plugins {
 	kotlin("jvm") version "1.9.25"
 	java
 	kotlin("plugin.spring") version "1.9.25"
 	id("org.springframework.boot") version "3.4.4"
 	id("io.spring.dependency-management") version "1.1.7"
-
+	id("jacoco")
 }
 
 // Define source sets
@@ -159,7 +161,6 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 	}
 }
 tasks.test {
-	val mockitoJar = "${layout.buildDirectory.get().asFile}/libs/mockito-core-${mockitoVersion}.jar"
 	val byteBuddyAgentJar = configurations.testRuntimeClasspath.get().find { it.name.contains("byte-buddy-agent-${byteBuddyVersion}") }
 
 	// Ensure JAR is available before tests
@@ -235,4 +236,72 @@ tasks.test {
 tasks.named("integrationTest") {
     dependsOn("cleanTestDirsBefore")
     finalizedBy("cleanTestDirsAfter")
+}
+
+// Configure JaCoCo for test coverage reporting
+jacoco {
+    toolVersion = "0.8.11" // Use the latest version of JaCoCo
+}
+
+// Configure JaCoCo for unit tests
+tasks.test {
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        csv.required.set(false)
+        html.required.set(true)
+        html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco/test"))
+    }
+}
+
+// Configure JaCoCo for integration tests
+val jacocoIntegrationTestReport = tasks.register<JacocoReport>("jacocoIntegrationTestReport") {
+    dependsOn(tasks.named("integrationTest"))
+
+    executionData.setFrom(files("${layout.buildDirectory.get()}/jacoco/integrationTest.exec"))
+
+    sourceDirectories.setFrom(files(sourceSets.main.get().allSource.srcDirs))
+    classDirectories.setFrom(files(sourceSets.main.get().output))
+
+    reports {
+        xml.required.set(true)
+        csv.required.set(false)
+        html.required.set(true)
+        html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco/integrationTest"))
+    }
+}
+
+// Configure integration test to generate JaCoCo execution data
+tasks.named<Test>("integrationTest") {
+    finalizedBy(jacocoIntegrationTestReport)
+
+    // Enable JaCoCo for this test task
+    jacoco {
+        // JaCoCo will automatically create an execution data file
+        // The default location is build/jacoco/integrationTest.exec
+    }
+}
+
+// Create a task to generate an aggregated JaCoCo report
+val jacocoAggregatedReport = tasks.register<JacocoReport>("jacocoAggregatedReport") {
+    dependsOn(tasks.test, tasks.named("integrationTest"))
+
+    executionData.setFrom(files(
+        "${layout.buildDirectory.get()}/jacoco/test.exec",
+        "${layout.buildDirectory.get()}/jacoco/integrationTest.exec"
+    ))
+
+    sourceDirectories.setFrom(files(sourceSets.main.get().allSource.srcDirs))
+    classDirectories.setFrom(files(sourceSets.main.get().output))
+
+    reports {
+        xml.required.set(true)
+        csv.required.set(false)
+        html.required.set(true)
+        html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco/aggregated"))
+    }
 }

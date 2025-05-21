@@ -121,3 +121,41 @@ docker run -p 8080:8080 \
 ```
 ./gradlew test
 ```
+
+### Test Coverage Reports
+
+This project uses JaCoCo for test coverage reporting. JaCoCo generates detailed reports showing which lines of code are covered by tests and which are not.
+
+#### Generating Coverage Reports
+
+- **Unit Test Coverage**: Run unit tests and generate coverage report
+  ```
+  ./gradlew test jacocoTestReport
+  ```
+
+- **Integration Test Coverage**: Run integration tests and generate coverage report
+  ```
+  ./gradlew integrationTest jacocoIntegrationTestReport
+  ```
+
+- **Aggregated Coverage Report**: Generate a combined report for both unit and integration tests
+  ```
+  ./gradlew jacocoAggregatedReport
+  ```
+
+#### Viewing Coverage Reports
+
+After generating the reports, you can find them in the following locations:
+
+- Unit Test Coverage: `build/reports/jacoco/test/index.html`
+- Integration Test Coverage: `build/reports/jacoco/integrationTest/index.html`
+- Aggregated Coverage: `build/reports/jacoco/aggregated/index.html`
+
+Open these HTML files in your browser to view detailed coverage information, including:
+
+- Overall project coverage percentage
+- Package-level coverage statistics
+- Class-level coverage details
+- Line-by-line coverage highlighting
+
+The reports help identify areas of code that lack test coverage, allowing you to focus your testing efforts more effectively.
