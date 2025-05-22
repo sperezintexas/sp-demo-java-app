@@ -8,6 +8,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
     id("jacoco")
     id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
+    id("org.sonarqube") version "4.4.1.3373"
 }
 
 // Configure ktlint
@@ -362,4 +363,14 @@ tasks.named("build") {
 // Add ktlint check to the check task
 tasks.named("check") {
     dependsOn("ktlintCheck")
+}
+
+// Configure SonarQube for SonarCloud integration
+sonarqube {
+    properties {
+        property("sonar.projectKey", "sperezintexas_sp-demo-java-app")
+        property("sonar.organization", "sperezintexas")
+        property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.gradle.skipCompile", "true")
+    }
 }
