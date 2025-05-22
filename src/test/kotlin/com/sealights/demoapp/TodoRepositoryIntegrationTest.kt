@@ -2,29 +2,25 @@ package com.sealights.demoapp
 
 import com.sealights.demoapp.data.Todo
 import com.sealights.demoapp.repository.TodoRepository
-import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import java.time.LocalDateTime
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-
 class TodoRepositoryIntegrationTest {
-
     @Autowired
     private lateinit var todoRepository: TodoRepository
 
-
     fun `should save and retrieve todo`() {
         // given
-        val todo = Todo(
-            id = null,
-            title = "Test Todo",
-            description = "Test Description",
-            completed = false,
-            createdAt = LocalDateTime.now()
-        )
+        val todo =
+            Todo(
+                id = null,
+                title = "Test Todo",
+                description = "Test Description",
+                completed = false,
+                createdAt = LocalDateTime.now(),
+            )
 
         // when
         val savedTodo = todoRepository.save(todo)

@@ -159,3 +159,57 @@ Open these HTML files in your browser to view detailed coverage information, inc
 - Line-by-line coverage highlighting
 
 The reports help identify areas of code that lack test coverage, allowing you to focus your testing efforts more effectively.
+
+### Code Style with ktlint
+
+This project uses [ktlint](https://github.com/pinterest/ktlint) to enforce consistent code style across all Kotlin files. ktlint is a linter and formatter that follows the official Kotlin coding conventions.
+
+#### Checking Code Style
+
+To check if your code follows the style guidelines:
+
+```
+./gradlew ktlintCheck
+```
+
+This will scan all Kotlin files and report any style violations without making changes.
+
+#### Formatting Code
+
+To automatically format your code according to the style guidelines:
+
+```
+./gradlew ktlintFormat
+```
+
+This will fix most style issues automatically. Some issues (like wildcard imports) require manual fixes.
+
+#### Format Before Build
+
+For convenience, a task is provided to format code and then build the project:
+
+```
+./gradlew formatAndBuild
+```
+
+Note: The `formatAndBuild` task will fail if there are code style violations that cannot be automatically fixed, such as wildcard imports. In these cases, you'll need to manually fix the issues before the build can succeed.
+
+#### IDE Integration
+
+For the best development experience, consider installing ktlint plugins for your IDE:
+
+- **IntelliJ IDEA**: Install the "Ktlint" plugin from the JetBrains Marketplace
+- **VS Code**: Install the "Ktlint" extension
+
+These plugins will highlight style issues as you type and can format code on save.
+
+#### Style Rules
+
+The project follows the standard ktlint rules, which include:
+- No wildcard imports
+- Consistent indentation (4 spaces)
+- Proper spacing around operators
+- Consistent naming conventions
+- And many more
+
+For a complete list of rules, see the [ktlint documentation](https://github.com/pinterest/ktlint#standard-rules).

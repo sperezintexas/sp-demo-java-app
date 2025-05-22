@@ -18,13 +18,17 @@ class SLCoverageBotService(private val slCoverageBotRepository: SLCoverageBotRep
         return if (slCoverageBotRepository.existsById(id)) {
             slCoverageBotRepository.save(slCoverageBot)
             true
-        } else false
+        } else {
+            false
+        }
     }
 
     fun deleteById(id: String): Boolean {
         return if (slCoverageBotRepository.existsById(id)) {
             slCoverageBotRepository.deleteById(id)
             true
-        } else false
+        } else {
+            false
+        }
     }
 }

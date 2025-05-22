@@ -1,22 +1,24 @@
 package com.sealights.demoapp
 
+import org.json.JSONObject
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions.*
+import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
-import org.json.JSONObject
-import org.skyscreamer.jsonassert.JSONAssert
-import org.skyscreamer.jsonassert.JSONCompareMode
 
 class TodoRepositoryIntegrationTest {
-
-    private val httpClient = HttpClient.newBuilder()
-        .version(HttpClient.Version.HTTP_1_1)
-        .connectTimeout(Duration.ofSeconds(10))
-        .build()
+    private val httpClient =
+        HttpClient.newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)
+            .connectTimeout(Duration.ofSeconds(10))
+            .build()
 
     @Test
     fun `should create and retrieve todo from deployed API`() {
@@ -29,18 +31,20 @@ class TodoRepositoryIntegrationTest {
         println("[DEBUG_LOG] Using API endpoint: $apiEndpoint")
 
         // Load the expected Todo JSON from resources
-        val expectedTodoJson = javaClass.getResourceAsStream("/expected-todo.json")?.bufferedReader()?.readText()
-            ?: throw IllegalStateException("Failed to load expected-todo.json")
+        val expectedTodoJson =
+            javaClass.getResourceAsStream("/expected-todo.json")?.bufferedReader()?.readText()
+                ?: throw IllegalStateException("Failed to load expected-todo.json")
 
         // Use the expected JSON for creating the Todo
         val todoJson = expectedTodoJson
 
         // POST the Todo to the API
-        val createRequest = HttpRequest.newBuilder()
-            .uri(URI.create("$apiEndpoint/api/todos"))
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(todoJson))
-            .build()
+        val createRequest =
+            HttpRequest.newBuilder()
+                .uri(URI.create("$apiEndpoint/api/todos"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(todoJson))
+                .build()
 
         // Print the complete URL before making the POST request
         println("[DEBUG_LOG] Sending POST request to: ${createRequest.uri()}")
@@ -58,10 +62,11 @@ class TodoRepositoryIntegrationTest {
         val createdTodoId = createdTodoJson.getLong("id")
 
         // GET the Todo by ID to verify it was persisted
-        val getRequest = HttpRequest.newBuilder()
-            .uri(URI.create("$apiEndpoint/api/todos/$createdTodoId"))
-            .GET()
-            .build()
+        val getRequest =
+            HttpRequest.newBuilder()
+                .uri(URI.create("$apiEndpoint/api/todos/$createdTodoId"))
+                .GET()
+                .build()
 
         // Print the complete URL before making the GET request
         println("[DEBUG_LOG] Sending GET request to: ${getRequest.uri()}")
@@ -72,8 +77,9 @@ class TodoRepositoryIntegrationTest {
         assertEquals(200, getResponse.statusCode())
 
         // Load the expected response JSON from resources
-        val expectedResponseJson = javaClass.getResourceAsStream("/expected-todo-response.json")?.bufferedReader()?.readText()
-            ?: throw IllegalStateException("Failed to load expected-todo-response.json")
+        val expectedResponseJson =
+            javaClass.getResourceAsStream("/expected-todo-response.json")?.bufferedReader()?.readText()
+                ?: throw IllegalStateException("Failed to load expected-todo-response.json")
 
         // Parse the expected response JSON and add the ID from the created Todo
         val expectedResponseObj = JSONObject(expectedResponseJson)
@@ -83,8 +89,8 @@ class TodoRepositoryIntegrationTest {
         val actualResponseObj = JSONObject(getResponse.body())
 
         // Print both JSONs for debugging
-        println("[DEBUG_LOG] Expected JSON: ${expectedResponseObj.toString()}")
-        println("[DEBUG_LOG] Actual JSON: ${actualResponseObj.toString()}")
+        println("[DEBUG_LOG] Expected JSON: $expectedResponseObj")
+        println("[DEBUG_LOG] Actual JSON: $actualResponseObj")
 
         // Remove createdAt from both objects for comparison
         expectedResponseObj.remove("createdAt")
@@ -96,17 +102,18 @@ class TodoRepositoryIntegrationTest {
         // UPDATE the Todo to mark it as completed
         val updatedTodoJson = JSONObject(todoJson)
         updatedTodoJson.put("completed", true)
-        updatedTodoJson.put("id", createdTodoId)  // Include the ID for the update
+        updatedTodoJson.put("id", createdTodoId) // Include the ID for the update
 
-        val updateRequest = HttpRequest.newBuilder()
-            .uri(URI.create("$apiEndpoint/api/todos/$createdTodoId"))
-            .header("Content-Type", "application/json")
-            .PUT(HttpRequest.BodyPublishers.ofString(updatedTodoJson.toString()))
-            .build()
+        val updateRequest =
+            HttpRequest.newBuilder()
+                .uri(URI.create("$apiEndpoint/api/todos/$createdTodoId"))
+                .header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(updatedTodoJson.toString()))
+                .build()
 
         // Print the complete URL before making the PUT request
         println("[DEBUG_LOG] Sending PUT request to: ${updateRequest.uri()}")
-        println("[DEBUG_LOG] Request body: ${updatedTodoJson.toString()}")
+        println("[DEBUG_LOG] Request body: $updatedTodoJson")
 
         val updateResponse = httpClient.send(updateRequest, HttpResponse.BodyHandlers.ofString())
 
@@ -119,10 +126,11 @@ class TodoRepositoryIntegrationTest {
         assertTrue(updatedResponseJson.getBoolean("completed"))
 
         // GET the Todo again to verify the update was persisted
-        val getUpdatedRequest = HttpRequest.newBuilder()
-            .uri(URI.create("$apiEndpoint/api/todos/$createdTodoId"))
-            .GET()
-            .build()
+        val getUpdatedRequest =
+            HttpRequest.newBuilder()
+                .uri(URI.create("$apiEndpoint/api/todos/$createdTodoId"))
+                .GET()
+                .build()
 
         println("[DEBUG_LOG] Sending GET request for updated Todo to: ${getUpdatedRequest.uri()}")
 
@@ -137,10 +145,11 @@ class TodoRepositoryIntegrationTest {
         assertTrue(updatedTodoFromGet.getBoolean("completed"))
 
         // Cleanup - DELETE the Todo
-        val deleteRequest = HttpRequest.newBuilder()
-            .uri(URI.create("$apiEndpoint/api/todos/$createdTodoId"))
-            .DELETE()
-            .build()
+        val deleteRequest =
+            HttpRequest.newBuilder()
+                .uri(URI.create("$apiEndpoint/api/todos/$createdTodoId"))
+                .DELETE()
+                .build()
 
         // Print the complete URL before making the DELETE request
         println("[DEBUG_LOG] Sending DELETE request to: ${deleteRequest.uri()}")
@@ -149,10 +158,11 @@ class TodoRepositoryIntegrationTest {
         assertEquals(204, deleteResponse.statusCode())
 
         // Verify the Todo was deleted
-        val verifyDeleteRequest = HttpRequest.newBuilder()
-            .uri(URI.create("$apiEndpoint/api/todos/$createdTodoId"))
-            .GET()
-            .build()
+        val verifyDeleteRequest =
+            HttpRequest.newBuilder()
+                .uri(URI.create("$apiEndpoint/api/todos/$createdTodoId"))
+                .GET()
+                .build()
 
         // Print the complete URL before making the verification request
         println("[DEBUG_LOG] Sending verification GET request to: ${verifyDeleteRequest.uri()}")

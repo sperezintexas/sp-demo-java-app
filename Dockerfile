@@ -26,8 +26,11 @@ WORKDIR /app
 # Copy the built JAR file from the build stage
 COPY --from=build /app/build/libs/*.jar app.jar
 
-# Copy the SeaLights Java Agent
-COPY sealights/sl-test-listener.jar /app/sealights/sl-test-listener.jar
+# Check if sealights folder exists, if not download and extract it
+RUN if [ ! -d "sealights" ]; then \
+    wget -nv https://agents.sealights.co/sealights-java/sealights-java-latest.zip && \
+    unzip -oq sealights-java-latest.zip -d sealights; \
+fi
 
 # Expose the port the app runs on
 EXPOSE 8080

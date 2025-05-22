@@ -18,14 +18,17 @@ class MessageController(private val messageService: MessageService) {
     fun getAllMessages() = ResponseEntity.ok(messageService.findMessages())
 
     @PostMapping
-    fun post(@RequestBody message: Message): ResponseEntity<Message> {
+    fun post(
+        @RequestBody message: Message,
+    ): ResponseEntity<Message> {
         val savedMessage = messageService.save(message)
         return ResponseEntity.created(URI("/${savedMessage.id}")).body(savedMessage)
     }
 
     @GetMapping("/{id}")
-    fun getMessage(@PathVariable id: String): ResponseEntity<Message> =
-        messageService.findMessageById(id).toResponseEntity()
+    fun getMessage(
+        @PathVariable id: String,
+    ): ResponseEntity<Message> = messageService.findMessageById(id).toResponseEntity()
 
     private fun Message?.toResponseEntity(): ResponseEntity<Message> =
         // If the message is null (not found), set response code to 404

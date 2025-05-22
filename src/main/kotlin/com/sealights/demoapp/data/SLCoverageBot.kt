@@ -11,5 +11,5 @@ data class SLCoverageBot(
     val description: String,
     val status: String = "active",
     val createdAt: LocalDateTime = LocalDateTime.now(),
-    @Id val id: String? = UUID.randomUUID().toString()
+    @Id val id: String? = UUID.randomUUID().toString(),
 )

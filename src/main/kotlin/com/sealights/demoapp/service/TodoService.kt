@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service
 
 @Service
 class TodoService(private val todoRepository: TodoRepository) {
-
     fun findAll(): List<Todo> = todoRepository.findAll().toList()
 
     fun findById(id: Long): Todo? = todoRepository.findById(id).orElse(null)
@@ -18,13 +17,17 @@ class TodoService(private val todoRepository: TodoRepository) {
         return if (todoRepository.existsById(id)) {
             todoRepository.save(todo)
             true
-        } else false
+        } else {
+            false
+        }
     }
 
     fun deleteById(id: Long): Boolean {
         return if (todoRepository.existsById(id)) {
             todoRepository.deleteById(id)
             true
-        } else false
+        } else {
+            false
+        }
     }
 }

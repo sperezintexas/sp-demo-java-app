@@ -5,12 +5,16 @@ import com.sealights.demoapp.repository.TodoRepository
 import com.sealights.demoapp.service.TodoService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.ArgumentMatchers.any
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.*
+import org.mockito.Mockito.doNothing
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import java.time.LocalDateTime
-import java.util.*
+import java.util.Optional
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
@@ -18,7 +22,6 @@ import kotlin.test.assertTrue
 
 @ExtendWith(MockitoExtension::class)
 class TodoServiceTest {
-
     @Mock
     private lateinit var repository: TodoRepository
 
@@ -28,15 +31,16 @@ class TodoServiceTest {
     @Test
     fun `should find all todos`() {
         // given
-        val todos = listOf(
-            Todo(
-                id = 1L,
-                title = "Test Todo",
-                description = "Test Description",
-                completed = false,
-                createdAt = LocalDateTime.now()
+        val todos =
+            listOf(
+                Todo(
+                    id = 1L,
+                    title = "Test Todo",
+                    description = "Test Description",
+                    completed = false,
+                    createdAt = LocalDateTime.now(),
+                ),
             )
-        )
         `when`(repository.findAll()).thenReturn(todos)
 
         // when
@@ -50,13 +54,14 @@ class TodoServiceTest {
     @Test
     fun `should find todo by id`() {
         // given
-        val todo = Todo(
-            id = 1L,
-            title = "Test Todo",
-            description = "Test Description",
-            completed = false,
-            createdAt = LocalDateTime.now()
-        )
+        val todo =
+            Todo(
+                id = 1L,
+                title = "Test Todo",
+                description = "Test Description",
+                completed = false,
+                createdAt = LocalDateTime.now(),
+            )
         `when`(repository.findById(1L)).thenReturn(Optional.of(todo))
 
         // when
@@ -83,13 +88,14 @@ class TodoServiceTest {
     @Test
     fun `should save new todo with generated id`() {
         // given
-        val todo = Todo(
-            id = null,
-            title = "Test Todo",
-            description = "Test Description",
-            completed = false,
-            createdAt = LocalDateTime.now()
-        )
+        val todo =
+            Todo(
+                id = null,
+                title = "Test Todo",
+                description = "Test Description",
+                completed = false,
+                createdAt = LocalDateTime.now(),
+            )
         val savedTodo = todo.copy(id = 1L)
         `when`(repository.save(any())).thenReturn(savedTodo)
 
@@ -105,13 +111,14 @@ class TodoServiceTest {
     @Test
     fun `should save todo with existing id`() {
         // given
-        val todo = Todo(
-            id = 1L,
-            title = "Test Todo",
-            description = "Test Description",
-            completed = false,
-            createdAt = LocalDateTime.now()
-        )
+        val todo =
+            Todo(
+                id = 1L,
+                title = "Test Todo",
+                description = "Test Description",
+                completed = false,
+                createdAt = LocalDateTime.now(),
+            )
         `when`(repository.save(todo)).thenReturn(todo)
 
         // when
@@ -126,13 +133,14 @@ class TodoServiceTest {
     @Test
     fun `should save todo with non-existent id`() {
         // given
-        val todo = Todo(
-            id = 999L,
-            title = "Test Todo",
-            description = "Test Description",
-            completed = false,
-            createdAt = LocalDateTime.now()
-        )
+        val todo =
+            Todo(
+                id = 999L,
+                title = "Test Todo",
+                description = "Test Description",
+                completed = false,
+                createdAt = LocalDateTime.now(),
+            )
         `when`(repository.save(todo)).thenReturn(todo)
 
         // when
@@ -147,13 +155,14 @@ class TodoServiceTest {
     @Test
     fun `should update existing todo`() {
         // given
-        val todo = Todo(
-            id = 1L,
-            title = "Updated Todo",
-            description = "Updated Description",
-            completed = true,
-            createdAt = LocalDateTime.now()
-        )
+        val todo =
+            Todo(
+                id = 1L,
+                title = "Updated Todo",
+                description = "Updated Description",
+                completed = true,
+                createdAt = LocalDateTime.now(),
+            )
         `when`(repository.existsById(1L)).thenReturn(true)
         `when`(repository.save(todo)).thenReturn(todo)
 
@@ -169,13 +178,14 @@ class TodoServiceTest {
     @Test
     fun `should not update non-existent todo`() {
         // given
-        val todo = Todo(
-            id = 1L,
-            title = "Updated Todo",
-            description = "Updated Description",
-            completed = true,
-            createdAt = LocalDateTime.now()
-        )
+        val todo =
+            Todo(
+                id = 1L,
+                title = "Updated Todo",
+                description = "Updated Description",
+                completed = true,
+                createdAt = LocalDateTime.now(),
+            )
         `when`(repository.existsById(1L)).thenReturn(false)
 
         // when
