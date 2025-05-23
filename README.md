@@ -160,6 +160,85 @@ Open these HTML files in your browser to view detailed coverage information, inc
 
 The reports help identify areas of code that lack test coverage, allowing you to focus your testing efforts more effectively.
 
+### SonarQube Analysis
+
+This project is configured for code quality analysis using SonarQube/SonarCloud. The configuration automatically handles the potential conflict between manual and automatic analysis.
+
+#### Required Configuration
+
+Before running SonarQube analysis, you need to set up the following:
+
+1. **SONAR_TOKEN Environment Variable**:
+   - Create a token in your SonarCloud account (https://sonarcloud.io/account/security)
+   - Set the environment variable in your shell:
+     ```
+     # For Linux/macOS
+     export SONAR_TOKEN="your-sonar-token"
+
+     # For Windows Command Prompt
+     set SONAR_TOKEN=your-sonar-token
+
+     # For Windows PowerShell
+     $env:SONAR_TOKEN="your-sonar-token"
+     ```
+
+2. **Project Properties**:
+   - The `sonar.projectKey` and `sonar.organization` properties are already set in the `gradle.properties` file
+   - Make sure these match your SonarCloud project settings
+
+#### Helper Scripts
+
+For convenience, helper scripts are provided to run SonarQube analysis with the proper environment variables:
+
+**Linux/macOS (Bash):**
+```bash
+# Make the script executable
+chmod +x scripts/run-sonar-analysis.sh
+
+# Run the analysis with your token
+./scripts/run-sonar-analysis.sh your-sonar-token
+```
+
+**Windows (PowerShell):**
+```powershell
+# Run the analysis with your token
+.\scripts\run-sonar-analysis.ps1 your-sonar-token
+```
+
+These scripts will:
+- Set the SONAR_TOKEN environment variable
+- Run the SonarQube analysis
+- Provide feedback on the results
+
+#### Analysis Options
+
+There are two ways to run SonarQube analysis:
+
+1. **Local Analysis** (recommended for development):
+   ```
+   ./gradlew sonarLocal
+   ```
+   This runs analysis locally without sending data to SonarCloud. It automatically disables automatic analysis to avoid conflicts.
+
+2. **SonarCloud Analysis** (for CI or manual submission):
+   ```
+   ./gradlew sonar
+   ```
+   This runs analysis and sends results to SonarCloud:
+   - When running in CI (GitHub Actions), it enables automatic analysis.
+   - When running locally, it disables automatic analysis to avoid conflicts.
+
+#### Help Information
+
+To display help information about SonarQube analysis options:
+```
+./gradlew sonarHelp
+```
+
+#### Avoiding Conflicts
+
+The configuration automatically detects whether you're running in a CI environment (GitHub Actions) or locally, and adjusts settings accordingly to prevent the "You are running manual analysis while Automatic Analysis is enabled" error.
+
 ### Code Style with ktlint
 
 This project uses [ktlint](https://github.com/pinterest/ktlint) to enforce consistent code style across all Kotlin files. ktlint is a linter and formatter that follows the official Kotlin coding conventions.

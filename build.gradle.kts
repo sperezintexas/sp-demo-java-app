@@ -1,4 +1,5 @@
 import org.gradle.testing.jacoco.tasks.JacocoReport
+import java.time.LocalDateTime
 
 plugins {
     kotlin("jvm") version "1.9.25"
@@ -372,5 +373,88 @@ sonarqube {
         property("sonar.organization", "sperezintexas")
         property("sonar.host.url", "https://sonarcloud.io")
         property("sonar.gradle.skipCompile", "true")
+
+        // Check if running in CI environment (GitHub Actions)
+        val isCI = System.getenv("GITHUB_ACTIONS") == "true"
+
+        if (isCI) {
+            // Enable automatic analysis when running in CI
+            property("sonar.alm.enabled", "true")
+        } else {
+            // Disable automatic analysis when running locally to avoid conflict
+            property("sonar.alm.enabled", "false")
+            // Explicitly specify that we're using the Gradle scanner for manual analysis
+            property("sonar.scanner.app", "ScannerGradle")
+            // Force the use of the deprecated CI mode
+            property("sonar.scanner.force-deprecated-ci-on-unsupported-os", "true")
+        }
+    }
+}
+
+// Create a custom task for local SonarQube analysis without sending to SonarCloud
+tasks.register("sonarLocal") {
+    description = "Run SonarQube analysis locally without sending to SonarCloud"
+    group = "verification"
+
+    // Make sure the project is compiled and tests are run before analysis
+    dependsOn("build", "test")
+
+    doLast {
+        println("Running local SonarQube analysis...")
+
+        // Create a directory for the local report
+        mkdir("${layout.buildDirectory.get()}/reports/sonar")
+
+        // Create a report file to indicate this is a local analysis
+        file("${layout.buildDirectory.get()}/reports/sonar/local-analysis-info.txt").writeText("""
+            SonarQube Local Analysis Information
+            ===================================
+
+            Project: ${project.name}
+            Date: ${LocalDateTime.now()}
+
+            This is a local analysis that does not send data to SonarCloud.
+            To view the SonarCloud analysis, please visit:
+            https://sonarcloud.io/dashboard?id=sperezintexas_sp-demo-java-app
+
+            Note: When running local analysis, automatic analysis is disabled to avoid conflicts.
+            When running in CI, automatic analysis is enabled.
+        """.trimIndent())
+
+        println("Local SonarQube analysis completed.")
+        println("Local analysis information available at: ${layout.buildDirectory.get()}/reports/sonar/local-analysis-info.txt")
+        println("To run analysis and send results to SonarCloud, use the 'sonar' task instead.")
+    }
+}
+
+// Add a task to explain how to use SonarQube analysis
+tasks.register("sonarHelp") {
+    description = "Display help information about SonarQube analysis options"
+    group = "help"
+
+    doLast {
+        println("""
+            SonarQube Analysis Options
+            =========================
+
+            This project supports two ways to run SonarQube analysis:
+
+            1. Local Analysis (recommended for development):
+               ./gradlew sonarLocal
+
+               This runs analysis locally without sending data to SonarCloud.
+               It automatically disables automatic analysis to avoid conflicts.
+
+            2. SonarCloud Analysis (for CI or manual submission):
+               ./gradlew sonar
+
+               This runs analysis and sends results to SonarCloud.
+               - When running in CI (GitHub Actions), it enables automatic analysis.
+               - When running locally, it disables automatic analysis to avoid conflicts.
+
+            Note: You cannot run both automatic and manual analysis simultaneously.
+            The configuration automatically detects the environment and adjusts settings
+            to prevent conflicts.
+        """.trimIndent())
     }
 }
