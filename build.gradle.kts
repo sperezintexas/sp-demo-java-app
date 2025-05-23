@@ -165,7 +165,8 @@ val integrationTest =
                 override fun afterTest(
                     testDescriptor: TestDescriptor,
                     result: TestResult,
-                ) {}
+                ) {
+                }
             },
         )
 
@@ -189,7 +190,8 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     }
 }
 tasks.test {
-    val byteBuddyAgentJar = configurations.testRuntimeClasspath.get().find { it.name.contains("byte-buddy-agent-$byteBuddyVersion") }
+    val byteBuddyAgentJar =
+        configurations.testRuntimeClasspath.get().find { it.name.contains("byte-buddy-agent-$byteBuddyVersion") }
 
     // Ensure JAR is available before tests
     dependsOn(tasks.named("jar"))
@@ -247,7 +249,8 @@ tasks.test {
             override fun afterTest(
                 testDescriptor: TestDescriptor,
                 result: TestResult,
-            ) {}
+            ) {
+            }
         },
     )
 }
@@ -406,7 +409,8 @@ tasks.register("sonarLocal") {
         mkdir("${layout.buildDirectory.get()}/reports/sonar")
 
         // Create a report file to indicate this is a local analysis
-        file("${layout.buildDirectory.get()}/reports/sonar/local-analysis-info.txt").writeText("""
+        file("${layout.buildDirectory.get()}/reports/sonar/local-analysis-info.txt").writeText(
+            """
             SonarQube Local Analysis Information
             ===================================
 
@@ -419,7 +423,8 @@ tasks.register("sonarLocal") {
 
             Note: When running local analysis, automatic analysis is disabled to avoid conflicts.
             When running in CI, automatic analysis is enabled.
-        """.trimIndent())
+            """.trimIndent(),
+        )
 
         println("Local SonarQube analysis completed.")
         println("Local analysis information available at: ${layout.buildDirectory.get()}/reports/sonar/local-analysis-info.txt")
@@ -433,7 +438,8 @@ tasks.register("sonarHelp") {
     group = "help"
 
     doLast {
-        println("""
+        println(
+            """
             SonarQube Analysis Options
             =========================
 
@@ -455,6 +461,7 @@ tasks.register("sonarHelp") {
             Note: You cannot run both automatic and manual analysis simultaneously.
             The configuration automatically detects the environment and adjusts settings
             to prevent conflicts.
-        """.trimIndent())
+            """.trimIndent(),
+        )
     }
 }
