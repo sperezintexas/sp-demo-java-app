@@ -65,11 +65,6 @@ These variables are defined in the `.env` file and are automatically loaded by D
 
 For convenience, we've provided scripts that load these variables from the `.env` file and pass them to the Docker container:
 
-#### Windows (PowerShell)
-
-```powershell
-.\run-docker.ps1
-```
 
 #### Linux/macOS (Bash)
 
@@ -107,6 +102,128 @@ docker run -p 8080:8080 \
 - `POST /api/messages` - Create a new message
 
 ## Development
+
+### Google Cloud and Kubernetes Setup
+
+If you need to connect to the application deployed on Google Kubernetes Engine (GKE), follow these steps to set up your local environment:
+
+#### Prerequisites
+
+- [Google Cloud SDK](https://cloud.google.com/sdk/docs/install) installed
+- [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) installed
+
+#### Installing gke-gcloud-auth-plugin
+
+Starting with GKE v1.26, the `gke-gcloud-auth-plugin` is required for kubectl to authenticate with GKE clusters. If you see an error like:
+
+```
+CRITICAL: ACTION REQUIRED: gke-gcloud-auth-plugin, which is needed for continued use of kubectl, was not found or is not executable. Install gke-gcloud-auth-plugin for use with kubectl by following https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl#install_plugin
+```
+
+Follow these steps to install the plugin:
+
+##### macOS
+
+**Option 1: Using the helper script (recommended)**
+
+We provide a helper script that automates the installation and configuration process:
+
+1. Make the script executable:
+   ```bash
+   chmod +x scripts/setup-gke-auth-plugin.sh
+   ```
+
+2. Run the script:
+   ```bash
+   ./scripts/setup-gke-auth-plugin.sh
+   ```
+
+3. Follow the on-screen instructions to complete the setup.
+
+**Option 2: Manual installation**
+
+1. Install the plugin using gcloud components:
+   ```bash
+   gcloud components install gke-gcloud-auth-plugin
+   ```
+
+2. Verify the installation:
+   ```bash
+   gke-gcloud-auth-plugin --version
+   ```
+
+3. Configure kubectl to use the plugin:
+   ```bash
+   export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+   ```
+
+4. Add the export to your shell profile (~/.zshrc, ~/.bash_profile, or ~/.bashrc) to make it permanent:
+   ```bash
+   echo 'export USE_GKE_GCLOUD_AUTH_PLUGIN=True' >> ~/.zshrc  # or ~/.bash_profile or ~/.bashrc
+   source ~/.zshrc  # or ~/.bash_profile or ~/.bashrc
+   ```
+
+5. Now you can connect to the GKE cluster:
+   ```bash
+   gcloud container clusters get-credentials sp-demo-java-app-cluster --region us-central1 --project your-project-id
+   ```
+
+##### Linux
+
+1. Install the plugin using gcloud components:
+   ```bash
+   gcloud components install gke-gcloud-auth-plugin
+   ```
+
+2. Verify the installation:
+   ```bash
+   gke-gcloud-auth-plugin --version
+   ```
+
+3. Configure kubectl to use the plugin:
+   ```bash
+   export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+   ```
+
+4. Add the export to your shell profile (~/.bashrc or ~/.bash_profile) to make it permanent:
+   ```bash
+   echo 'export USE_GKE_GCLOUD_AUTH_PLUGIN=True' >> ~/.bashrc  # or ~/.bash_profile
+   source ~/.bashrc  # or ~/.bash_profile
+   ```
+
+5. Now you can connect to the GKE cluster:
+   ```bash
+   gcloud container clusters get-credentials sp-demo-java-app-cluster --region us-central1 --project your-project-id
+   ```
+
+##### Windows
+
+1. Install the plugin using gcloud components:
+   ```powershell
+   gcloud components install gke-gcloud-auth-plugin
+   ```
+
+2. Verify the installation:
+   ```powershell
+   gke-gcloud-auth-plugin --version
+   ```
+
+3. Configure kubectl to use the plugin by setting an environment variable:
+   ```powershell
+   $env:USE_GKE_GCLOUD_AUTH_PLUGIN = "True"
+   ```
+
+4. To make this setting permanent, set it at the system level:
+   ```powershell
+   [System.Environment]::SetEnvironmentVariable("USE_GKE_GCLOUD_AUTH_PLUGIN", "True", "User")
+   ```
+
+5. Now you can connect to the GKE cluster:
+   ```powershell
+   gcloud container clusters get-credentials sp-demo-java-app-cluster --region us-central1 --project your-project-id
+   ```
+
+For more information, see the [official Google Cloud documentation](https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl#install_plugin).
 
 ### Running Locally
 
