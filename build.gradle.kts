@@ -64,7 +64,7 @@ val logVersion = "2.0.17"
 val logbackVersion = "1.5.18"
 val mockitoVersion = "5.15.2"
 val byteBuddyVersion = "1.15.11"
-val springBootVersion = "3.2.6"
+
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -376,6 +376,14 @@ sonarqube {
         property("sonar.organization", "sperezintexas")
         property("sonar.host.url", "https://sonarcloud.io")
         property("sonar.gradle.skipCompile", "true")
+
+        // Configure JaCoCo XML report paths for Sonar
+        property(
+            "sonar.coverage.jacoco.xmlReportPaths",
+            "${layout.buildDirectory.get()}/reports/jacoco/test/jacocoTestReport.xml," +
+                "${layout.buildDirectory.get()}/reports/jacoco/integrationTest/jacocoIntegrationTestReport.xml," +
+                "${layout.buildDirectory.get()}/reports/jacoco/aggregated/jacocoAggregatedReport.xml",
+        )
 
         // Check if running in CI environment (GitHub Actions)
         val isCI = System.getenv("GITHUB_ACTIONS") == "true"
