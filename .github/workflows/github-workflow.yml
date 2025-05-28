@@ -234,6 +234,7 @@ jobs:
           SL_TOKEN: ${{ secrets.SL_TOKEN }}
         run: |
           ./gradlew test jacocoTestReport
+           ls build/reports/jacoco/test/jacocoTestReport.xml
 
       - name: Upload test results to SeaLights
         env:
@@ -242,8 +243,7 @@ jobs:
           java -jar sealights/sl-test-listener.jar uploadReports \
             -token $SL_TOKEN \
             -buildsessionidfile buildSessionId.txt \
-            -reportFilesFolder build/reports/jacoco/test \
-            -reportFile jacocoTestReport.xml \
+            -reportFile build/reports/jacoco/test/jacocoTestReport.xml \
             -source "JaCoCo Report" \
             -type JacocoReport
 
