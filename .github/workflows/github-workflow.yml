@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: SeaLights Java Demo Pipeline
 
 on:
   push:
@@ -242,9 +242,10 @@ jobs:
           java -jar sealights/sl-test-listener.jar uploadReports \
             -token $SL_TOKEN \
             -buildsessionidfile buildSessionId.txt \
-            -reportFilesFolder build/test-results/test \
-            -source "Junit xml Report" \
-            -type JUnitReport
+            -reportFilesFolder build/reports/jacoco/test \
+            -reportFile jacocoTestReport.xml \
+            -source "JaCoCo Report" \
+            -type JacocoReport
 
       - name: End SeaLights Unit Test Stage
         env:
@@ -447,8 +448,10 @@ jobs:
 
   teardown:
     needs: integration-test
-    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ needs.deploy.outputs.api_endpoint }}
     steps:
       - uses: actions/checkout@v4
 
@@ -492,8 +495,11 @@ jobs:
           kubectl get svc sp-demo-java-app-service || echo "Service sp-demo-java-app-service not found (already deleted)."
 
   manual-teardown:
-    if: github.event_name == 'workflow_dispatch'
+    needs: integration-test
     runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ needs.deploy.outputs.api_endpoint }}
     steps:
       - uses: actions/checkout@v4
 
