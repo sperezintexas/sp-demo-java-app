@@ -402,6 +402,11 @@ sonarqube {
     }
 }
 
+// Make sure JaCoCo reports are generated before SonarQube analysis
+tasks.named("sonar").configure {
+    dependsOn(tasks.jacocoTestReport, "jacocoIntegrationTestReport", "jacocoAggregatedReport")
+}
+
 // Create a custom task for local SonarQube analysis without sending to SonarCloud
 tasks.register("sonarLocal") {
     description = "Run SonarQube analysis locally without sending to SonarCloud"
