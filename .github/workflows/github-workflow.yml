@@ -233,7 +233,7 @@ jobs:
         env:
           SL_TOKEN: ${{ secrets.SL_TOKEN }}
         run: |
-          ./gradlew test
+          ./gradlew test jacocoTestReport
 
       - name: Upload test results to SeaLights
         env:
