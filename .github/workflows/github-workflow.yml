@@ -474,7 +474,7 @@ jobs:
           approvers: "user1,user2" # Replace with your approvers
           additional-approved-words: "approve, approved, lgtm, yes"
           additional-denied-words: "deny, denied, no"
-          secret: ''
+          secret: ${{ secrets.GITHUB_TOKEN }}
       # Authenticate to Google Cloud
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
