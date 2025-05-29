@@ -2,9 +2,9 @@ name: SL Java Demo Pipeline
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
   workflow_dispatch:  # Allows manual triggering
 
 jobs:
@@ -177,7 +177,7 @@ jobs:
 
   unit-test:
     name: Unit Test
-    needs: [build, package]
+    needs: [ build, package ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -256,7 +256,7 @@ jobs:
             -buildsessionidfile buildSessionId.txt
 
   deploy:
-    needs: [package, unit-test]
+    needs: [ package, unit-test ]
     runs-on: ubuntu-latest
     outputs:
       api_endpoint: ${{ steps.get_external_ip.outputs.api_endpoint }}
@@ -459,7 +459,16 @@ jobs:
       url: ${{ needs.deploy.outputs.api_endpoint }}
     steps:
       - uses: actions/checkout@v4
-
+      # Manual Approval Step
+      - name: Manual Approval Step
+        uses: trstringer/manual-approval@v1
+        with:
+          title: "Approve Infrastructure Deployment"
+          body: "Please review the infrastructure deployment and approve/deny."
+          approvers: "user1,user2" # Replace with your approvers
+          approve-keywords: "approve, approved, lgtm, yes"
+          deny-keywords: "deny, denied, no"
+          secret: ''
       # Authenticate to Google Cloud
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -498,3 +507,15 @@ jobs:
           echo "Verifying resources are deleted..."
           kubectl get deployment sp-demo-java-app || echo "Deployment sp-demo-java-app not found (already deleted)."
           kubectl get svc sp-demo-java-app-service || echo "Service sp-demo-java-app-service not found (already deleted)."
+
+      # Delete Kubernetes Secret
+      - name: Delete Kubernetes Secret
+        run: |
+          kubectl delete secret sealights-secret || echo "Secret sealights-secret not found (already deleted)."
+
+      # Delete Docker Image from Artifact Registry
+      - name: Delete Docker Image from Artifact Registry
+        run: |
+          gcloud artifacts docker images delete \
+            us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/sp-demo-java-app-repo/sp-demo-java-app:${{ github.sha }} \
+            --quiet || echo "Docker image not found (already deleted)."
