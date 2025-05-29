@@ -469,11 +469,11 @@ jobs:
       - name: Manual Approval Step
         uses: trstringer/manual-approval@v1
         with:
-          title: "Approve Infrastructure Deployment"
-          body: "Please review the infrastructure deployment and approve/deny."
+          issue-title: "Approve Infrastructure Deployment"
+          issue-body: "Please review the infrastructure deployment and approve/deny."
           approvers: "user1,user2" # Replace with your approvers
-          approve-keywords: "approve, approved, lgtm, yes"
-          deny-keywords: "deny, denied, no"
+          additional-approved-words: "approve, approved, lgtm, yes"
+          additional-denied-words: "deny, denied, no"
           secret: ''
       # Authenticate to Google Cloud
       - name: Authenticate to Google Cloud
