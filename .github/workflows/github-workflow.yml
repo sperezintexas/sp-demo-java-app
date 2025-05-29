@@ -452,6 +452,8 @@ jobs:
     environment:
       name: production
       url: ${{ needs.deploy.outputs.api_endpoint }}
+      # Add manual approval requirement
+      manual_approval: true
     steps:
       - uses: actions/checkout@v4
 
@@ -494,50 +496,3 @@ jobs:
           kubectl get deployment sp-demo-java-app || echo "Deployment sp-demo-java-app not found (already deleted)."
           kubectl get svc sp-demo-java-app-service || echo "Service sp-demo-java-app-service not found (already deleted)."
 
-  manual-teardown:
-    needs: integration-test
-    runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: ${{ needs.deploy.outputs.api_endpoint }}
-    steps:
-      - uses: actions/checkout@v4
-
-      # Authenticate to Google Cloud
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      # Set up gcloud CLI
-      - name: Set up gcloud CLI
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-
-      # Install gke-gcloud-auth-plugin
-      - name: Install gke-gcloud-auth-plugin
-        run: |
-          gcloud components install gke-gcloud-auth-plugin
-          gke-gcloud-auth-plugin --version
-
-      # Debug: List GKE Clusters
-      - name: List GKE Clusters
-        run: |
-          gcloud container clusters list --region us-central1
-
-      # Get GKE credentials
-      - name: Get GKE credentials
-        run: |
-          gcloud container clusters get-credentials sp-demo-java-app-cluster --region us-central1 --project ${{ secrets.GCP_PROJECT_ID }}
-
-      # Tear down the deployed app
-      - name: Tear Down Application
-        run: |
-          echo "Deleting Deployment and Service..."
-          kubectl delete -f k8s/deployment.yaml || {
-            echo "Error: Failed to delete resources. They may not exist."
-          }
-          echo "Verifying resources are deleted..."
-          kubectl get deployment sp-demo-java-app || echo "Deployment sp-demo-java-app not found (already deleted)."
-          kubectl get svc sp-demo-java-app-service || echo "Service sp-demo-java-app-service not found (already deleted)."
