@@ -251,7 +251,7 @@ jobs:
             -buildsessionidfile buildSessionId.txt \
             -reportFile build/reports/jacoco/test/jacocoTestReport.xml \
             -source "JaCoCo Report" \
-            -type JacocoReport
+            -type JUnitReport
 
       - name: End SeaLights Unit Test Stage
         env:
