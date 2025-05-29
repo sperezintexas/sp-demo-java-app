@@ -1,4 +1,4 @@
-name: Java Demo Pipeline
+name: SL Java Demo Pipeline
 
 on:
   push:
@@ -449,11 +449,14 @@ jobs:
   teardown:
     needs: integration-test
     runs-on: ubuntu-latest
+    # This environment requires approval before the job runs
+    # To set up required reviewers:
+    # 1. Go to repository Settings > Environments
+    # 2. Create a new environment named "production"
+    # 3. Enable "Required reviewers" and add the GitHub users who can approve
     environment:
       name: production
       url: ${{ needs.deploy.outputs.api_endpoint }}
-      # Add manual approval requirement
-      manual_approval: true
     steps:
       - uses: actions/checkout@v4
 
@@ -495,4 +498,3 @@ jobs:
           echo "Verifying resources are deleted..."
           kubectl get deployment sp-demo-java-app || echo "Deployment sp-demo-java-app not found (already deleted)."
           kubectl get svc sp-demo-java-app-service || echo "Service sp-demo-java-app-service not found (already deleted)."
-
