@@ -248,17 +248,6 @@ tasks.test {
             ) {
             }
         },
-// Task to clean test directories before tests run
-//task<Delete>("cleanTestDirsBefore") {
-//    delete("${layout.buildDirectory.get()}/test-results/test/binary")
-//    delete("${layout.buildDirectory.get()}/test-results/integrationTest/binary")
-//}
-//
-//// Task to clean test directories after tests run
-//task<Delete>("cleanTestDirsAfter") {
-//    delete("${layout.buildDirectory.get()}/test-results/test/binary")
-//    delete("${layout.buildDirectory.get()}/test-results/integrationTest/binary")
-//}
     )
 }
 
@@ -356,10 +345,10 @@ tasks.jacocoTestReport {
 
             // Display coverage metrics
             println("\n========== Code Coverage Metrics ==========")
-            println("Instruction Coverage: ${String.format("%.2f", instructionCoverage)}% (${instructionCovered}/${instructionTotal})")
-            println("Line Coverage: ${String.format("%.2f", lineCoverage)}% (${lineCovered}/${lineTotal})")
-            println("Branch Coverage: ${String.format("%.2f", branchCoverage)}% (${branchCovered}/${branchTotal})")
-            println("Complexity Coverage: ${String.format("%.2f", complexityCoverage)}% (${complexityCovered}/${complexityTotal})")
+            println("Instruction Coverage: ${String.format("%.2f", instructionCoverage)}% ($instructionCovered/$instructionTotal)")
+            println("Line Coverage: ${String.format("%.2f", lineCoverage)}% ($lineCovered/$lineTotal)")
+            println("Branch Coverage: ${String.format("%.2f", branchCoverage)}% ($branchCovered/$branchTotal)")
+            println("Complexity Coverage: ${String.format("%.2f", complexityCoverage)}% ($complexityCovered/$complexityTotal)")
             println("==========================================")
             println("Full HTML report: file://${layout.buildDirectory.get()}/reports/jacoco/test/index.html")
         } else {
@@ -381,7 +370,7 @@ val jacocoIntegrationTestReport =
         reports {
             xml.required.set(true)
             csv.required.set(false)
-            html.required.set(true)
+            html.required.set(false)
             html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco/integrationTest"))
         }
 
@@ -448,10 +437,10 @@ val jacocoIntegrationTestReport =
 
                 // Display coverage metrics
                 println("\n========== Integration Test Code Coverage Metrics ==========")
-                println("Instruction Coverage: ${String.format("%.2f", instructionCoverage)}% (${instructionCovered}/${instructionTotal})")
-                println("Line Coverage: ${String.format("%.2f", lineCoverage)}% (${lineCovered}/${lineTotal})")
-                println("Branch Coverage: ${String.format("%.2f", branchCoverage)}% (${branchCovered}/${branchTotal})")
-                println("Complexity Coverage: ${String.format("%.2f", complexityCoverage)}% (${complexityCovered}/${complexityTotal})")
+                println("Instruction Coverage: ${String.format("%.2f", instructionCoverage)}% ($instructionCovered/$instructionTotal)")
+                println("Line Coverage: ${String.format("%.2f", lineCoverage)}% ($lineCovered/$lineTotal)")
+                println("Branch Coverage: ${String.format("%.2f", branchCoverage)}% ($branchCovered/$branchTotal)")
+                println("Complexity Coverage: ${String.format("%.2f", complexityCoverage)}% ($complexityCovered/$complexityTotal)")
                 println("==========================================================")
                 println("Full HTML report: file://${layout.buildDirectory.get()}/reports/jacoco/integrationTest/index.html")
             } else {
@@ -556,10 +545,10 @@ val jacocoAggregatedReport =
 
                 // Display coverage metrics
                 println("\n========== Aggregated Code Coverage Metrics ==========")
-                println("Instruction Coverage: ${String.format("%.2f", instructionCoverage)}% (${instructionCovered}/${instructionTotal})")
-                println("Line Coverage: ${String.format("%.2f", lineCoverage)}% (${lineCovered}/${lineTotal})")
-                println("Branch Coverage: ${String.format("%.2f", branchCoverage)}% (${branchCovered}/${branchTotal})")
-                println("Complexity Coverage: ${String.format("%.2f", complexityCoverage)}% (${complexityCovered}/${complexityTotal})")
+                println("Instruction Coverage: ${String.format("%.2f", instructionCoverage)}% ($instructionCovered/$instructionTotal)")
+                println("Line Coverage: ${String.format("%.2f", lineCoverage)}% ($lineCovered/$lineTotal)")
+                println("Branch Coverage: ${String.format("%.2f", branchCoverage)}% ($branchCovered/$branchTotal)")
+                println("Complexity Coverage: ${String.format("%.2f", complexityCoverage)}% ($complexityCovered/$complexityTotal)")
                 println("======================================================")
                 println("Full HTML report: file://${layout.buildDirectory.get()}/reports/jacoco/aggregated/index.html")
             } else {
