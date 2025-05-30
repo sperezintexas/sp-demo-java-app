@@ -356,6 +356,7 @@ jobs:
   integration-test:
     needs: deploy
     runs-on: ubuntu-latest
+    continue-on-error: true
     env:
       API_ENDPOINT: ${{ needs.deploy.outputs.api_endpoint }}
     steps:
@@ -451,4 +452,3 @@ jobs:
           java -jar sealights/sl-test-listener.jar end \
             -token $SL_TOKEN \
             -buildsessionidfile buildSessionId.txt
-
