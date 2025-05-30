@@ -1,11 +1,14 @@
 package com.sealights.demoapp.data
 
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
-import java.util.UUID
 
 @Table("messages")
-data class Message(
-    val text: String,
-    @Id val id: String? = UUID.randomUUID().toString(),
-)
+data class Message
+    @JsonCreator
+    constructor(
+        @JsonProperty("text") val text: String,
+        @Id @JsonProperty("id") val id: Long? = null,
+    )

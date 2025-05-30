@@ -36,8 +36,8 @@ class MessageControllerTest {
         // given
         val messages =
             listOf(
-                Message(text = "Test Message 1", id = "1"),
-                Message(text = "Test Message 2", id = "2"),
+                Message(text = "Test Message 1", id = 1L),
+                Message(text = "Test Message 2", id = 2L),
             )
         `when`(messageService.findMessages()).thenReturn(messages)
         mockMvc = MockMvcBuilders.standaloneSetup(messageController).build()
@@ -46,9 +46,9 @@ class MessageControllerTest {
         mockMvc.perform(get("/api/messages"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$[0].id").value("1"))
+            .andExpect(jsonPath("$[0].id").value(1))
             .andExpect(jsonPath("$[0].text").value("Test Message 1"))
-            .andExpect(jsonPath("$[1].id").value("2"))
+            .andExpect(jsonPath("$[1].id").value(2))
             .andExpect(jsonPath("$[1].text").value("Test Message 2"))
 
         verify(messageService).findMessages()
@@ -58,7 +58,7 @@ class MessageControllerTest {
     fun `should create a new message`() {
         // given
         val newMessage = Message(text = "New Message")
-        val savedMessage = Message(text = "New Message", id = "1")
+        val savedMessage = Message(text = "New Message", id = 1L)
 
         // Use the actual message object for stubbing
         `when`(messageService.save(newMessage)).thenReturn(savedMessage)
@@ -71,8 +71,8 @@ class MessageControllerTest {
                 .content(objectMapper.writeValueAsString(newMessage)),
         )
             .andExpect(status().isCreated)
-            .andExpect(header().string("Location", "/1"))
-            .andExpect(jsonPath("$.id").value("1"))
+            .andExpect(header().string("Location", "/api/messages/1"))
+            .andExpect(jsonPath("$.id").value(1))
             .andExpect(jsonPath("$.text").value("New Message"))
 
         verify(messageService).save(newMessage)
@@ -81,30 +81,30 @@ class MessageControllerTest {
     @Test
     fun `should return message by id when exists`() {
         // given
-        val message = Message(text = "Test Message", id = "1")
-        `when`(messageService.findMessageById("1")).thenReturn(message)
+        val message = Message(text = "Test Message", id = 1L)
+        `when`(messageService.findMessageById(1L)).thenReturn(message)
         mockMvc = MockMvcBuilders.standaloneSetup(messageController).build()
 
         // when/then
         mockMvc.perform(get("/api/messages/1"))
             .andExpect(status().isOk)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.id").value("1"))
+            .andExpect(jsonPath("$.id").value(1))
             .andExpect(jsonPath("$.text").value("Test Message"))
 
-        verify(messageService).findMessageById("1")
+        verify(messageService).findMessageById(1L)
     }
 
     @Test
     fun `should return 404 when message not found`() {
         // given
-        `when`(messageService.findMessageById("1")).thenReturn(null)
+        `when`(messageService.findMessageById(1L)).thenReturn(null)
         mockMvc = MockMvcBuilders.standaloneSetup(messageController).build()
 
         // when/then
         mockMvc.perform(get("/api/messages/1"))
             .andExpect(status().isNotFound)
 
-        verify(messageService).findMessageById("1")
+        verify(messageService).findMessageById(1L)
     }
 }

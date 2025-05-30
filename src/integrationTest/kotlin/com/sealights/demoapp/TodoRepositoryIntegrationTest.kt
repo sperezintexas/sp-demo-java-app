@@ -21,7 +21,7 @@ class TodoRepositoryIntegrationTest {
             .build()
 
     @Test
-    fun `should create and retrieve todo from deployed API`() {
+    fun should_create_and_retrieve_todo_from_deployed_API() {
         // Get the API endpoint from system property or environment variable, with a default for local testing
         var apiEndpoint = System.getProperty("API_ENDPOINT") ?: System.getenv("API_ENDPOINT") ?: "http://localhost:8080"
         // Remove trailing slash if present to avoid double slashes in URLs

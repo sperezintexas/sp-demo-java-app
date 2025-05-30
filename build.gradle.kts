@@ -87,6 +87,9 @@ dependencies {
     "integrationTestImplementation"("org.junit.jupiter:junit-jupiter-engine")
     "integrationTestImplementation"("org.json:json:20240303")
     "integrationTestImplementation"("org.skyscreamer:jsonassert:1.5.1")
+    "integrationTestImplementation"("org.springframework.boot:spring-boot-starter-test")
+    "integrationTestImplementation"("org.springframework.boot:spring-boot-starter-web")
+    "integrationTestImplementation"("org.springframework.boot:spring-boot-starter-data-jdbc")
     "integrationTestRuntimeOnly"("org.junit.platform:junit-platform-launcher")
 }
 
@@ -113,13 +116,6 @@ val integrationTest =
 
         // Make sure integration tests run after unit tests
         shouldRunAfter("test")
-
-        // Wait for 2 minutes before running integration tests
-        doFirst {
-            println("Waiting for 2 minutes before running integration tests...")
-            Thread.sleep(120000) // 2 minutes in milliseconds
-            println("Wait completed, proceeding with integration tests.")
-        }
 
         // Configure reports
         reports {
@@ -312,7 +308,7 @@ val jacocoIntegrationTestReport =
         reports {
             xml.required.set(true)
             csv.required.set(false)
-            html.required.set(true)
+            html.required.set(false)
             html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco/integrationTest"))
         }
     }

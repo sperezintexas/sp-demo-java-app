@@ -8,9 +8,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
+import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.junit.jupiter.MockitoSettings
+import org.mockito.quality.Strictness
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
@@ -24,6 +27,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import java.time.LocalDateTime
 
 @ExtendWith(MockitoExtension::class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class TodoControllerTest {
     @Mock
     private lateinit var todoService: TodoService
@@ -121,12 +125,21 @@ class TodoControllerTest {
         verify(todoService).save(newTodo)
     }
 
+    @Test
     fun `should update todo when it exists`() {
         // given
+        val existingTodo =
+            Todo(id = 1L, title = "Existing Todo", description = "Existing Description", completed = false, createdAt = LocalDateTime.now())
         val todoToUpdate = Todo(title = "Updated Todo", description = "Updated Description", completed = true)
-        val expectedTodoToUpdate = Todo(id = 1L, title = "Updated Todo", description = "Updated Description", completed = true)
+        val expectedTodoToUpdate =
+            existingTodo.copy(
+                title = todoToUpdate.title,
+                description = todoToUpdate.description,
+                completed = todoToUpdate.completed,
+            )
 
-        `when`(todoService.update(expectedTodoToUpdate)).thenReturn(true)
+        `when`(todoService.findById(1L)).thenReturn(existingTodo)
+        doReturn(true).`when`(todoService).update(expectedTodoToUpdate)
         mockMvc = MockMvcBuilders.standaloneSetup(todoController).build()
 
         // when/then
@@ -141,15 +154,16 @@ class TodoControllerTest {
             .andExpect(jsonPath("$.description").value("Updated Description"))
             .andExpect(jsonPath("$.completed").value(true))
 
+        verify(todoService).findById(1L)
         verify(todoService).update(expectedTodoToUpdate)
     }
 
+    @Test
     fun `should return 404 when updating non-existent todo`() {
         // given
         val todoToUpdate = Todo(title = "Updated Todo", description = "Updated Description", completed = true)
-        val expectedTodoToUpdate = Todo(id = 1L, title = "Updated Todo", description = "Updated Description", completed = true)
 
-        `when`(todoService.update(expectedTodoToUpdate)).thenReturn(false)
+        `when`(todoService.findById(1L)).thenReturn(null)
         mockMvc = MockMvcBuilders.standaloneSetup(todoController).build()
 
         // when/then
@@ -160,7 +174,7 @@ class TodoControllerTest {
         )
             .andExpect(status().isNotFound)
 
-        verify(todoService).update(expectedTodoToUpdate)
+        verify(todoService).findById(1L)
     }
 
     @Test

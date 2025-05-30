@@ -44,7 +44,8 @@ class TodoController(private val todoService: TodoService) {
         @PathVariable id: Long,
         @RequestBody todo: Todo,
     ): ResponseEntity<Todo> {
-        val updatedTodo = todo.copy(id = id)
+        val existingTodo = todoService.findById(id) ?: return ResponseEntity.notFound().build()
+        val updatedTodo = existingTodo.copy(title = todo.title, description = todo.description, completed = todo.completed)
         return if (todoService.update(updatedTodo)) {
             ResponseEntity.ok(updatedTodo)
         } else {

@@ -1,0 +1,94 @@
+name: Manual Infrastructure Teardown
+
+on:
+  workflow_dispatch:  # Only triggered manually
+    inputs:
+      sha:
+        description: 'The GitHub SHA of the deployment to tear down'
+        required: true
+        default: ''
+
+# Add permissions needed for GitHub token
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  teardown:
+    runs-on: ubuntu-latest
+    # This environment requires approval before the job runs
+    # To set up required reviewers:
+    # 1. Go to repository Settings > Environments
+    # 2. Create a new environment named "production"
+    # 3. Enable "Required reviewers" and add the GitHub users who can approve
+    environment:
+      name: production
+    steps:
+      - uses: actions/checkout@v4
+      # Manual Approval Step
+      - name: Manual Approval Step
+        uses: trstringer/manual-approval@v1
+        with:
+          issue-title: "Approve Infrastructure Teardown"
+          issue-body: "Please review the infrastructure teardown and approve/deny."
+          approvers: "user1,user2" # Replace with your approvers
+          additional-approved-words: "approve, approved, lgtm, yes"
+          additional-denied-words: "deny, denied, no"
+          secret: ${{ secrets.GITHUB_TOKEN }}
+      # Authenticate to Google Cloud
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # Set up gcloud CLI
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      # Install gke-gcloud-auth-plugin
+      - name: Install gke-gcloud-auth-plugin
+        run: |
+          gcloud components install gke-gcloud-auth-plugin
+          gke-gcloud-auth-plugin --version
+
+      # Debug: List GKE Clusters
+      - name: List GKE Clusters
+        run: |
+          gcloud container clusters list --region us-central1
+
+      # Get GKE credentials
+      - name: Get GKE credentials
+        run: |
+          gcloud container clusters get-credentials sp-demo-java-app-cluster --region us-central1 --project ${{ secrets.GCP_PROJECT_ID }}
+
+      # Update deployment file with SHA
+      - name: Update deployment file with SHA
+        run: |
+          sed -i "s|tag-placeholder|${{ github.event.inputs.sha }}|g" k8s/deployment.yaml
+          cat k8s/deployment.yaml # Debug: Show replaced YAML
+
+      # Tear down the deployed app
+      - name: Tear Down Application
+        run: |
+          echo "Deleting Deployment and Service..."
+          kubectl delete -f k8s/deployment.yaml || {
+            echo "Error: Failed to delete resources. They may not exist."
+          }
+          echo "Verifying resources are deleted..."
+          kubectl get deployment sp-demo-java-app || echo "Deployment sp-demo-java-app not found (already deleted)."
+          kubectl get svc sp-demo-java-app-service || echo "Service sp-demo-java-app-service not found (already deleted)."
+
+      # Delete Kubernetes Secret
+      - name: Delete Kubernetes Secret
+        run: |
+          kubectl delete secret sealights-secret || echo "Secret sealights-secret not found (already deleted)."
+
+      # Delete Docker Image from Artifact Registry
+      - name: Delete Docker Image from Artifact Registry
+        run: |
+          gcloud artifacts docker images delete \
+            us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/sp-demo-java-app-repo/sp-demo-java-app:${{ github.event.inputs.sha }} \
+            --quiet || echo "Docker image not found (already deleted)."
