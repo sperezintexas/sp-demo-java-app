@@ -35,7 +35,6 @@ class TodoController(private val todoService: TodoService) {
         @RequestBody todo: Todo,
     ): Todo {
         // Ensure createdAt is set if not provided in the request
-        // val todoWithCreatedAt = todo
         return todoService.save(todo)
     }
 

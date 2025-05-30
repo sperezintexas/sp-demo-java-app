@@ -248,31 +248,30 @@ tasks.test {
             ) {
             }
         },
+// Task to clean test directories before tests run
+//task<Delete>("cleanTestDirsBefore") {
+//    delete("${layout.buildDirectory.get()}/test-results/test/binary")
+//    delete("${layout.buildDirectory.get()}/test-results/integrationTest/binary")
+//}
+//
+//// Task to clean test directories after tests run
+//task<Delete>("cleanTestDirsAfter") {
+//    delete("${layout.buildDirectory.get()}/test-results/test/binary")
+//    delete("${layout.buildDirectory.get()}/test-results/integrationTest/binary")
+//}
     )
 }
 
-// Task to clean test directories before tests run
-task<Delete>("cleanTestDirsBefore") {
-    delete("${layout.buildDirectory.get()}/test-results/test/binary")
-    delete("${layout.buildDirectory.get()}/test-results/integrationTest/binary")
-}
+//
 
-// Task to clean test directories after tests run
-task<Delete>("cleanTestDirsAfter") {
-    delete("${layout.buildDirectory.get()}/test-results/test/binary")
-    delete("${layout.buildDirectory.get()}/test-results/integrationTest/binary")
-}
-
-// Make sure test directories are cleaned before and after tests
+// Configure test task
 tasks.test {
-    dependsOn("cleanTestDirsBefore")
-    finalizedBy("cleanTestDirsAfter")
+    // Configure test logging and other settings
 }
 
-// Make sure test directories are cleaned before and after integration tests
+// Configure integration test task
 tasks.named("integrationTest") {
-    dependsOn("cleanTestDirsBefore")
-    finalizedBy("cleanTestDirsAfter")
+    // Configure test logging and other settings
 }
 
 // Configure JaCoCo for test coverage reporting
@@ -293,6 +292,80 @@ tasks.jacocoTestReport {
         html.required.set(true)
         html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco/test"))
     }
+
+    // Display coverage metrics after report generation
+    doLast {
+        val reportFile = file("${layout.buildDirectory.get()}/reports/jacoco/test/jacocoTestReport.xml")
+        if (reportFile.exists()) {
+            // Use javax.xml.parsers for XML parsing
+            val factory = javax.xml.parsers.DocumentBuilderFactory.newInstance()
+            // Disable DTD validation to avoid FileNotFoundException for report.dtd
+            factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+            factory.setValidating(false)
+            val builder = factory.newDocumentBuilder()
+            val doc = builder.parse(reportFile)
+
+            // Initialize coverage metrics
+            var instructionCovered = 0
+            var instructionMissed = 0
+            var lineCovered = 0
+            var lineMissed = 0
+            var branchCovered = 0
+            var branchMissed = 0
+            var complexityCovered = 0
+            var complexityMissed = 0
+
+            // Parse coverage metrics from XML
+            val counters = doc.getElementsByTagName("counter")
+            for (i in 0 until counters.length) {
+                val counter = counters.item(i)
+                val type = counter.attributes.getNamedItem("type").nodeValue
+                val covered = counter.attributes.getNamedItem("covered").nodeValue.toInt()
+                val missed = counter.attributes.getNamedItem("missed").nodeValue.toInt()
+
+                when (type) {
+                    "INSTRUCTION" -> {
+                        instructionCovered = covered
+                        instructionMissed = missed
+                    }
+                    "LINE" -> {
+                        lineCovered = covered
+                        lineMissed = missed
+                    }
+                    "BRANCH" -> {
+                        branchCovered = covered
+                        branchMissed = missed
+                    }
+                    "COMPLEXITY" -> {
+                        complexityCovered = covered
+                        complexityMissed = missed
+                    }
+                }
+            }
+
+            // Calculate coverage percentages
+            val instructionTotal = instructionCovered + instructionMissed
+            val lineTotal = lineCovered + lineMissed
+            val branchTotal = branchCovered + branchMissed
+            val complexityTotal = complexityCovered + complexityMissed
+
+            val instructionCoverage = if (instructionTotal > 0) (instructionCovered.toDouble() / instructionTotal) * 100 else 0.0
+            val lineCoverage = if (lineTotal > 0) (lineCovered.toDouble() / lineTotal) * 100 else 0.0
+            val branchCoverage = if (branchTotal > 0) (branchCovered.toDouble() / branchTotal) * 100 else 0.0
+            val complexityCoverage = if (complexityTotal > 0) (complexityCovered.toDouble() / complexityTotal) * 100 else 0.0
+
+            // Display coverage metrics
+            println("\n========== Code Coverage Metrics ==========")
+            println("Instruction Coverage: ${String.format("%.2f", instructionCoverage)}% (${instructionCovered}/${instructionTotal})")
+            println("Line Coverage: ${String.format("%.2f", lineCoverage)}% (${lineCovered}/${lineTotal})")
+            println("Branch Coverage: ${String.format("%.2f", branchCoverage)}% (${branchCovered}/${branchTotal})")
+            println("Complexity Coverage: ${String.format("%.2f", complexityCoverage)}% (${complexityCovered}/${complexityTotal})")
+            println("==========================================")
+            println("Full HTML report: file://${layout.buildDirectory.get()}/reports/jacoco/test/index.html")
+        } else {
+            println("\nNo JaCoCo report found at ${reportFile.absolutePath}")
+        }
+    }
 }
 
 // Configure JaCoCo for integration tests
@@ -308,8 +381,82 @@ val jacocoIntegrationTestReport =
         reports {
             xml.required.set(true)
             csv.required.set(false)
-            html.required.set(false)
+            html.required.set(true)
             html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco/integrationTest"))
+        }
+
+        // Display coverage metrics after report generation
+        doLast {
+            val reportFile = file("${layout.buildDirectory.get()}/reports/jacoco/integrationTest/jacocoIntegrationTestReport.xml")
+            if (reportFile.exists()) {
+                // Use javax.xml.parsers for XML parsing
+                val factory = javax.xml.parsers.DocumentBuilderFactory.newInstance()
+                // Disable DTD validation to avoid FileNotFoundException for report.dtd
+                factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+                factory.setValidating(false)
+                val builder = factory.newDocumentBuilder()
+                val doc = builder.parse(reportFile)
+
+                // Initialize coverage metrics
+                var instructionCovered = 0
+                var instructionMissed = 0
+                var lineCovered = 0
+                var lineMissed = 0
+                var branchCovered = 0
+                var branchMissed = 0
+                var complexityCovered = 0
+                var complexityMissed = 0
+
+                // Parse coverage metrics from XML
+                val counters = doc.getElementsByTagName("counter")
+                for (i in 0 until counters.length) {
+                    val counter = counters.item(i)
+                    val type = counter.attributes.getNamedItem("type").nodeValue
+                    val covered = counter.attributes.getNamedItem("covered").nodeValue.toInt()
+                    val missed = counter.attributes.getNamedItem("missed").nodeValue.toInt()
+
+                    when (type) {
+                        "INSTRUCTION" -> {
+                            instructionCovered = covered
+                            instructionMissed = missed
+                        }
+                        "LINE" -> {
+                            lineCovered = covered
+                            lineMissed = missed
+                        }
+                        "BRANCH" -> {
+                            branchCovered = covered
+                            branchMissed = missed
+                        }
+                        "COMPLEXITY" -> {
+                            complexityCovered = covered
+                            complexityMissed = missed
+                        }
+                    }
+                }
+
+                // Calculate coverage percentages
+                val instructionTotal = instructionCovered + instructionMissed
+                val lineTotal = lineCovered + lineMissed
+                val branchTotal = branchCovered + branchMissed
+                val complexityTotal = complexityCovered + complexityMissed
+
+                val instructionCoverage = if (instructionTotal > 0) (instructionCovered.toDouble() / instructionTotal) * 100 else 0.0
+                val lineCoverage = if (lineTotal > 0) (lineCovered.toDouble() / lineTotal) * 100 else 0.0
+                val branchCoverage = if (branchTotal > 0) (branchCovered.toDouble() / branchTotal) * 100 else 0.0
+                val complexityCoverage = if (complexityTotal > 0) (complexityCovered.toDouble() / complexityTotal) * 100 else 0.0
+
+                // Display coverage metrics
+                println("\n========== Integration Test Code Coverage Metrics ==========")
+                println("Instruction Coverage: ${String.format("%.2f", instructionCoverage)}% (${instructionCovered}/${instructionTotal})")
+                println("Line Coverage: ${String.format("%.2f", lineCoverage)}% (${lineCovered}/${lineTotal})")
+                println("Branch Coverage: ${String.format("%.2f", branchCoverage)}% (${branchCovered}/${branchTotal})")
+                println("Complexity Coverage: ${String.format("%.2f", complexityCoverage)}% (${complexityCovered}/${complexityTotal})")
+                println("==========================================================")
+                println("Full HTML report: file://${layout.buildDirectory.get()}/reports/jacoco/integrationTest/index.html")
+            } else {
+                println("\nNo JaCoCo integration test report found at ${reportFile.absolutePath}")
+            }
         }
     }
 
@@ -344,6 +491,80 @@ val jacocoAggregatedReport =
             csv.required.set(false)
             html.required.set(true)
             html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco/aggregated"))
+        }
+
+        // Display coverage metrics after report generation
+        doLast {
+            val reportFile = file("${layout.buildDirectory.get()}/reports/jacoco/aggregated/jacocoAggregatedReport.xml")
+            if (reportFile.exists()) {
+                // Use javax.xml.parsers for XML parsing
+                val factory = javax.xml.parsers.DocumentBuilderFactory.newInstance()
+                // Disable DTD validation to avoid FileNotFoundException for report.dtd
+                factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+                factory.setValidating(false)
+                val builder = factory.newDocumentBuilder()
+                val doc = builder.parse(reportFile)
+
+                // Initialize coverage metrics
+                var instructionCovered = 0
+                var instructionMissed = 0
+                var lineCovered = 0
+                var lineMissed = 0
+                var branchCovered = 0
+                var branchMissed = 0
+                var complexityCovered = 0
+                var complexityMissed = 0
+
+                // Parse coverage metrics from XML
+                val counters = doc.getElementsByTagName("counter")
+                for (i in 0 until counters.length) {
+                    val counter = counters.item(i)
+                    val type = counter.attributes.getNamedItem("type").nodeValue
+                    val covered = counter.attributes.getNamedItem("covered").nodeValue.toInt()
+                    val missed = counter.attributes.getNamedItem("missed").nodeValue.toInt()
+
+                    when (type) {
+                        "INSTRUCTION" -> {
+                            instructionCovered = covered
+                            instructionMissed = missed
+                        }
+                        "LINE" -> {
+                            lineCovered = covered
+                            lineMissed = missed
+                        }
+                        "BRANCH" -> {
+                            branchCovered = covered
+                            branchMissed = missed
+                        }
+                        "COMPLEXITY" -> {
+                            complexityCovered = covered
+                            complexityMissed = missed
+                        }
+                    }
+                }
+
+                // Calculate coverage percentages
+                val instructionTotal = instructionCovered + instructionMissed
+                val lineTotal = lineCovered + lineMissed
+                val branchTotal = branchCovered + branchMissed
+                val complexityTotal = complexityCovered + complexityMissed
+
+                val instructionCoverage = if (instructionTotal > 0) (instructionCovered.toDouble() / instructionTotal) * 100 else 0.0
+                val lineCoverage = if (lineTotal > 0) (lineCovered.toDouble() / lineTotal) * 100 else 0.0
+                val branchCoverage = if (branchTotal > 0) (branchCovered.toDouble() / branchTotal) * 100 else 0.0
+                val complexityCoverage = if (complexityTotal > 0) (complexityCovered.toDouble() / complexityTotal) * 100 else 0.0
+
+                // Display coverage metrics
+                println("\n========== Aggregated Code Coverage Metrics ==========")
+                println("Instruction Coverage: ${String.format("%.2f", instructionCoverage)}% (${instructionCovered}/${instructionTotal})")
+                println("Line Coverage: ${String.format("%.2f", lineCoverage)}% (${lineCovered}/${lineTotal})")
+                println("Branch Coverage: ${String.format("%.2f", branchCoverage)}% (${branchCovered}/${branchTotal})")
+                println("Complexity Coverage: ${String.format("%.2f", complexityCoverage)}% (${complexityCovered}/${complexityTotal})")
+                println("======================================================")
+                println("Full HTML report: file://${layout.buildDirectory.get()}/reports/jacoco/aggregated/index.html")
+            } else {
+                println("\nNo JaCoCo aggregated report found at ${reportFile.absolutePath}")
+            }
         }
     }
 

@@ -1,9 +1,11 @@
 package com.sealights.demoapp
 
 import org.json.JSONObject
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
@@ -20,10 +22,14 @@ class TodoRepositoryIntegrationTest {
             .connectTimeout(Duration.ofSeconds(10))
             .build()
 
-    @Test
-    fun should_create_and_retrieve_todo_from_deployed_API() {
+    private var apiEndpoint = ""
+    private var todoJson = ""
+    private var createdTodoId: Long = 0
+
+    @BeforeEach
+    fun setup() {
         // Get the API endpoint from system property or environment variable, with a default for local testing
-        var apiEndpoint = System.getProperty("API_ENDPOINT") ?: System.getenv("API_ENDPOINT") ?: "http://localhost:8080"
+        apiEndpoint = System.getProperty("API_ENDPOINT") ?: System.getenv("API_ENDPOINT") ?: "http://localhost:8080"
         // Remove trailing slash if present to avoid double slashes in URLs
         if (apiEndpoint.endsWith("/")) {
             apiEndpoint = apiEndpoint.dropLast(1)
@@ -31,13 +37,34 @@ class TodoRepositoryIntegrationTest {
         println("[DEBUG_LOG] Using API endpoint: $apiEndpoint")
 
         // Load the expected Todo JSON from resources
-        val expectedTodoJson =
+        todoJson =
             javaClass.getResourceAsStream("/expected-todo.json")?.bufferedReader()?.readText()
                 ?: throw IllegalStateException("Failed to load expected-todo.json")
+    }
 
-        // Use the expected JSON for creating the Todo
-        val todoJson = expectedTodoJson
+    @AfterEach
+    fun cleanup() {
+        // Only attempt to delete if we have a valid ID
+        if (createdTodoId > 0) {
+            try {
+                // Cleanup - DELETE the Todo
+                val deleteRequest =
+                    HttpRequest.newBuilder()
+                        .uri(URI.create("$apiEndpoint/api/todos/$createdTodoId"))
+                        .DELETE()
+                        .build()
 
+                println("[DEBUG_LOG] Cleanup: Sending DELETE request to: ${deleteRequest.uri()}")
+                val deleteResponse = httpClient.send(deleteRequest, HttpResponse.BodyHandlers.ofString())
+                println("[DEBUG_LOG] Cleanup: Delete response status: ${deleteResponse.statusCode()}")
+            } catch (e: Exception) {
+                println("[DEBUG_LOG] Error during cleanup: ${e.message}")
+            }
+        }
+    }
+
+    @Test
+    fun should_create_todo() {
         // POST the Todo to the API
         val createRequest =
             HttpRequest.newBuilder()
@@ -46,7 +73,6 @@ class TodoRepositoryIntegrationTest {
                 .POST(HttpRequest.BodyPublishers.ofString(todoJson))
                 .build()
 
-        // Print the complete URL before making the POST request
         println("[DEBUG_LOG] Sending POST request to: ${createRequest.uri()}")
         println("[DEBUG_LOG] Request body: $todoJson")
 
@@ -58,8 +84,14 @@ class TodoRepositoryIntegrationTest {
         assertNotNull(createdTodoJson.getLong("id"))
         assertEquals("Integration Test Todo", createdTodoJson.getString("title"))
 
-        // Store the created Todo ID for later use
-        val createdTodoId = createdTodoJson.getLong("id")
+        // Store the created Todo ID for cleanup
+        createdTodoId = createdTodoJson.getLong("id")
+    }
+
+    @Test
+    fun should_read_todo() {
+        // First create a todo to read
+        should_create_todo()
 
         // GET the Todo by ID to verify it was persisted
         val getRequest =
@@ -68,7 +100,6 @@ class TodoRepositoryIntegrationTest {
                 .GET()
                 .build()
 
-        // Print the complete URL before making the GET request
         println("[DEBUG_LOG] Sending GET request to: ${getRequest.uri()}")
 
         val getResponse = httpClient.send(getRequest, HttpResponse.BodyHandlers.ofString())
@@ -98,6 +129,12 @@ class TodoRepositoryIntegrationTest {
 
         // Compare the response with the expected JSON, now that createdAt has been removed from both
         JSONAssert.assertEquals(expectedResponseObj.toString(), actualResponseObj.toString(), JSONCompareMode.STRICT)
+    }
+
+    @Test
+    fun should_update_todo() {
+        // First create a todo to update
+        should_create_todo()
 
         // UPDATE the Todo to mark it as completed
         val updatedTodoJson = JSONObject(todoJson)
@@ -111,7 +148,6 @@ class TodoRepositoryIntegrationTest {
                 .PUT(HttpRequest.BodyPublishers.ofString(updatedTodoJson.toString()))
                 .build()
 
-        // Print the complete URL before making the PUT request
         println("[DEBUG_LOG] Sending PUT request to: ${updateRequest.uri()}")
         println("[DEBUG_LOG] Request body: $updatedTodoJson")
 
@@ -143,15 +179,20 @@ class TodoRepositoryIntegrationTest {
         assertEquals("Integration Test Todo", updatedTodoFromGet.getString("title"))
         assertEquals("Created during integration test", updatedTodoFromGet.getString("description"))
         assertTrue(updatedTodoFromGet.getBoolean("completed"))
+    }
 
-        // Cleanup - DELETE the Todo
+    @Test
+    fun should_delete_todo() {
+        // First create a todo to delete
+        should_create_todo()
+
+        // DELETE the Todo
         val deleteRequest =
             HttpRequest.newBuilder()
                 .uri(URI.create("$apiEndpoint/api/todos/$createdTodoId"))
                 .DELETE()
                 .build()
 
-        // Print the complete URL before making the DELETE request
         println("[DEBUG_LOG] Sending DELETE request to: ${deleteRequest.uri()}")
 
         val deleteResponse = httpClient.send(deleteRequest, HttpResponse.BodyHandlers.ofString())
@@ -164,10 +205,12 @@ class TodoRepositoryIntegrationTest {
                 .GET()
                 .build()
 
-        // Print the complete URL before making the verification request
         println("[DEBUG_LOG] Sending verification GET request to: ${verifyDeleteRequest.uri()}")
 
         val verifyDeleteResponse = httpClient.send(verifyDeleteRequest, HttpResponse.BodyHandlers.ofString())
         assertEquals(404, verifyDeleteResponse.statusCode())
+
+        // Set createdTodoId to 0 to prevent cleanup from trying to delete again
+        createdTodoId = 0
     }
 }

@@ -3,7 +3,7 @@ POST http://localhost:8080/api/messages
 Content-Type: application/json
 
 {
-  "text": "Hello!"
+  "messageText": "Hello!"
 }
 
 <> 2025-05-08T150701.500.json
@@ -32,7 +32,9 @@ POST http://localhost:8080/api/messages
 Content-Type: application/json
 
 {
-  "text": "Bonjour!"
+  "id": 0,
+  "messageText": "",
+  "createdAt": ""
 }
 
 <> 2025-05-08T150701-1.500.json
@@ -50,7 +52,7 @@ POST http://localhost:8080/api/messages
 Content-Type: application/json
 
 {
-  "text": "Privet!"
+  "messageText": "Privet!"
 }
 
 <> 2025-05-08T150701-2.500.json
@@ -68,7 +70,7 @@ POST http://localhost:8080/api/messages
 Content-Type: application/json
 
 {
-  "text": "SamPerez!"
+  "messageText": "SamPerez!"
 }
 
 <> 2025-05-08T150701-3.500.json
