@@ -27,24 +27,6 @@ jobs:
           echo "SeaLights Java Agent version used is:"
           cat sealights/sealights-java-version.txt
 
-      # Generate SeaLights Session ID with -config
-      - name: Generate SeaLights Session ID
-        env:
-          SL_TOKEN: ${{ secrets.SL_TOKEN }}
-          SL_APPNAME: ${{ secrets.SL_APPNAME }}
-          SL_BUILDNAME: "build-${{ github.run_id }}"
-          SL_BRANCHNAME: "${{ github.ref_name }}"
-        run: |
-          echo "SL.config running config command to generate session ID..."
-          java -jar sealights/sl-build-scanner.jar -config \
-            -appname "$SL_APPNAME" \
-            -buildname "$SL_BUILDNAME" \
-            -branchname "$SL_BRANCHNAME" \
-            -token "$SL_TOKEN" \
-            -pi "com.sealights.demoapp.*"
-          echo "Output from SL.config command (session ID should be in buildSessionId.txt):"
-          cat buildSessionId.txt
-
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
@@ -60,9 +42,43 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+      # Integrating build with SeaLights
+      - name: Integrating build with SeaLights
+        env:
+          SL_TOKEN: ${{ secrets.SL_TOKEN }}
+        run: |
+          echo "Integrating build with SeaLights..."
+          pwd;
+          ls build/libs;
+          echo "{
+            "executionType": "full",
+            "token": "${{SL_TOKEN}}",
+            "createBuildSessionId": true,
+            "appName": "sp-demo-java-app",
+            "branchName": "main",
+            "buildName": "SL_Timestamp",
+            "packagesIncluded": "*com.sealights.demoapp.*",
+            "packagesExcluded": "",
+            "filesIncluded": "*.class",
+            "filesExcluded": "*test-classes*",
+            "recursive": true,
+            "includeResources": true,
+            "labId": null,
+            "logEnabled": true,
+            "logDestination": "console",
+            "logLevel": "off",
+            "logFolder": "/tmp",
+            "scannerJar": "./sealights/sl-build-scanner.jar",
+            "listenerJar": "./sealights/sl-test-listener.jar"
+          }" > sl-config.json
+          java -jar sealights/sl-build-scanner.jar -gradle -configfile sl-config.json -workspacepath ." || {
+              echo "Error: config gradle command failed."
+              exit 1
+            }
+
 
       - name: Build with Gradle
-        run: ./gradlew formatAndBuild
+        run: ./gradlew clean formatAndBuild
 
       # Upload JaCoCo Report
       - name: Upload JaCoCo Report
@@ -82,15 +98,6 @@ jobs:
           min-coverage-changed-files: 60
           title: Code Coverage
 
-      # Upload SeaLights session ID and agent as artifacts
-      - name: Upload SeaLights Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: sealights-artifacts
-          path: |
-            buildSessionId.txt
-            sealights/
-          retention-days: 1
 
       # Upload build artifacts
       - name: Upload Build Artifacts
@@ -126,24 +133,6 @@ jobs:
           cat sealights/sealights-java-version.txt
           ls -l sealights/ # Debug: Confirm sl-test-listener.jar is present
 
-      # Scan the build with SeaLights
-      - name: Scan Build with SeaLights
-        env:
-          SL_TOKEN: ${{ secrets.SL_TOKEN }}
-        run: |
-          SESSION_ID=$(cat buildSessionId.txt)
-          echo "Session ID: $SESSION_ID"
-          echo "Scanning build with SeaLights..."
-          pwd;
-          ls build/libs;
-          java -jar sealights/sl-build-scanner.jar -scan \
-            -token "$SL_TOKEN" \
-            -buildsessionid "$SESSION_ID" \
-            -workspacepath "build/libs" \
-            -fi "*.jar" || {
-              echo "Error: Scan command failed."
-              exit 1
-            }
 
       # Build Docker image with SeaLights agent
       - name: Build Docker image
