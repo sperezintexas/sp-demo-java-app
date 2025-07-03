@@ -48,8 +48,6 @@ jobs:
           SL_TOKEN: ${{ secrets.SL_TOKEN }}
         run: |
           echo "Integrating build with SeaLights..."
-          pwd;
-          ls build/libs;
           echo "{
             "executionType": "full",
             "token": "$SL_TOKEN",
@@ -78,7 +76,7 @@ jobs:
 
 
       - name: Build with Gradle
-        run: ./gradlew clean formatAndBuild
+        run: ./gradlew clean build
 
       # Upload JaCoCo Report
       - name: Upload JaCoCo Report
