@@ -69,7 +69,7 @@ jobs:
             "scannerJar": "./sealights/sl-build-scanner.jar",
             "listenerJar": "./sealights/sl-test-listener.jar"
           }" > sl-config.json
-          java -jar sealights/sl-build-scanner.jar -gradle -configfile sl-config.json -workspacepath ." || {
+          java -jar sealights/sl-build-scanner.jar -gradle -configfile sl-config.json -workspacepath . || {
               echo "Error: config gradle command failed."
               exit 1
             }
