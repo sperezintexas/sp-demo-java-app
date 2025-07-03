@@ -52,7 +52,7 @@ jobs:
           ls build/libs;
           echo "{
             "executionType": "full",
-            "token": "${{SL_TOKEN}}",
+            "token": "$SL_TOKEN",
             "createBuildSessionId": true,
             "appName": "sp-demo-java-app",
             "branchName": "main",
